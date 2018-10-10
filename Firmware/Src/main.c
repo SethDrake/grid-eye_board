@@ -2,26 +2,33 @@
 #include "cmsis_os.h"
 #include "st_logo1.h"
 #include <ili9341.h>
+#include <stm32f429i_discovery.h>
 
+osThreadId LEDThread1Handle, LEDThread2Handle, LTDCThreadHandle, SDRAMThreadHandle, GridEyeThreadHandle;
 
-/* Private typedef -----------------------------------------------------------*/
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private variables ---------------------------------------------------------*/
-osThreadId LEDThread1Handle, LEDThread2Handle, LTDCThreadHandle, SDRAMThreadHandle;
 LTDC_HandleTypeDef LtdcHandle;
 
 __IO uint32_t ReloadFlag = 0;
+
+uint16_t dots[64];
+uint16_t pixels[25600];
 
 /* Private function prototypes -----------------------------------------------*/
 static void LED_Thread1(void const *argument);
 static void LED_Thread2(void const *argument);
 static void LTDC_Thread(void const *argument);
 static void SDRAM_Thread(void const *argument);
+static void GridEye_Thread(void const *argument);
+
+static void GridEye_Config(void);
 static void SystemClock_Config(void);
 static void LCD_Config(void);
 
 static void Error_Handler(void);
+
+static uint16_t rgb2color(uint8_t R, uint8_t G, uint8_t B);
+static uint8_t calculateRGB(uint8_t rgb1, uint8_t rgb2, float t1, float step, float t);
+static uint16_t temperatureToRGB565(float temperature, float minTemp, float maxTemp);
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -47,22 +54,25 @@ int main(void)
   /* Configure the system clock to 168 MHz */
   SystemClock_Config();
 
+  /* Init I2C3 */
+  IOE_Init();
+
   BSP_SDRAM_Init();
 
-  //copy image to sdram
-  BSP_SDRAM_WriteData(SDRAM_DEVICE_ADDR, (uint32_t *)&ST_LOGO_1, sizeof(ST_LOGO_1));
-
   LCD_Config();
+	GridEye_Config();
   
   osThreadDef(LED3, LED_Thread1, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
   osThreadDef(LED4, LED_Thread2, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
   osThreadDef(LDTC, LTDC_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
   osThreadDef(SDRAM, SDRAM_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+  osThreadDef(GRID_EYE, GridEye_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
   
   LEDThread1Handle = osThreadCreate (osThread(LED3), NULL);
   LEDThread2Handle = osThreadCreate (osThread(LED4), NULL);
   LTDCThreadHandle = osThreadCreate(osThread(LDTC), NULL);
   SDRAMThreadHandle = osThreadCreate(osThread(SDRAM), NULL);
+  GridEyeThreadHandle = osThreadCreate(osThread(GRID_EYE), NULL);
   
   /* Start scheduler */
   osKernelStart();
@@ -156,7 +166,7 @@ static void LTDC_Thread(void const *argument)
 		/* reconfigure the layer1 position  without Reloading*/
 		HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 0, 0);
 		/* reconfigure the layer2 position  without Reloading*/
-		//HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, Xpos2, Ypos2, 1);
+		HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 160, 1);
 		/* Ask for LTDC reload within next vertical blanking*/
 		ReloadFlag = 0;
 		HAL_LTDC_Reload(&LtdcHandle, LTDC_SRCR_VBR);
@@ -166,7 +176,7 @@ static void LTDC_Thread(void const *argument)
 		  /* wait till reload takes effect (in the next vertical blanking period) */
 		}
 
-		osDelay(500);
+		osDelay(5000);
 	}
 }
 
@@ -184,6 +194,99 @@ static void SDRAM_Thread(void const *argument)
 		BSP_SDRAM_ReadData(CUSTOM_DATA_ADDR, testData2, buf_size);
 		osDelay(1000);
 	}
+}
+
+static void GridEye_Thread(void const *argument)
+{
+	(void) argument;  
+	for (;;)
+	{
+		uint8_t taddr = 0x80;
+		for (uint8_t i = 0; i < 64; i++)
+		{
+			dots[i] = IOE_Read(GRID_EYE_ADDR, taddr); //low
+			taddr++;
+			uint16_t tmp = IOE_Read(GRID_EYE_ADDR, taddr); //high
+			taddr++;
+			tmp = tmp << 8;
+			dots[i] |= tmp;
+			dots[i] = temperatureToRGB565(dots[i] * 0.25, 15, 45);
+		}
+
+		uint32_t cntr = 0;
+		uint8_t line = 0;
+		uint8_t row = 0;
+
+		while (line < 8)
+		{
+			for (uint8_t t = 0; t < 20; t++) //repeat ten times
+			{
+				while (row < 8)
+				{
+					for (uint8_t k = 0; k < 20; k++) //repeat ten times
+					{
+						pixels[cntr] = dots[line * 8 + row];
+						cntr++;		
+					}
+					row++;
+				}
+				row = 0;
+			}
+			line++;				
+		}
+
+		BSP_SDRAM_WriteData(FRAMEBUFFER_ADDR, (uint32_t *)&pixels, 32000);
+		BSP_SDRAM_WriteData(FRAMEBUFFER_ADDR + 32000, (uint32_t *)(&pixels) + (32000/4), sizeof(pixels) - 32000);
+
+		BSP_SDRAM_WriteData(FRAMEBUFFER_ADDR2, (uint32_t *)&dots, sizeof(dots));
+		osDelay(90);
+	}
+}
+
+static uint16_t rgb2color(uint8_t R, uint8_t G, uint8_t B)
+{
+	return ((R & 0xF8) << 8) | ((G & 0xFC) << 3) | (B >> 3);
+}
+
+static uint8_t calculateRGB(uint8_t rgb1, uint8_t rgb2, float t1, float step, float t) {
+	return (uint8_t)(rgb1 + (((t - t1) / step) * (rgb2 - rgb1)));
+}
+
+static uint16_t temperatureToRGB565(float temperature, float minTemp, float maxTemp) {
+	uint8_t r, g, b;
+
+	uint16_t val = rgb2color(DEFAULT_COLOR_SCHEME[0][0], DEFAULT_COLOR_SCHEME[0][1], DEFAULT_COLOR_SCHEME[0][2]);
+	if (temperature < minTemp) {
+		val = rgb2color(DEFAULT_COLOR_SCHEME[0][0], DEFAULT_COLOR_SCHEME[0][1], DEFAULT_COLOR_SCHEME[0][2]);
+	}
+	else if (temperature >= maxTemp) {
+		short colorSchemeSize = sizeof(DEFAULT_COLOR_SCHEME);
+		val = rgb2color(DEFAULT_COLOR_SCHEME[colorSchemeSize - 1][0], DEFAULT_COLOR_SCHEME[colorSchemeSize - 1][1], DEFAULT_COLOR_SCHEME[colorSchemeSize - 1][2]);
+	}
+	else {
+		float step = (maxTemp - minTemp) / 10.0;
+		uint8_t step1 = (uint8_t)((temperature - minTemp) / step);
+		uint8_t step2 = step1 + 1;
+		uint8_t red = calculateRGB(DEFAULT_COLOR_SCHEME[step1][0], DEFAULT_COLOR_SCHEME[step2][0], (minTemp + step1 * step), step, temperature);
+		uint8_t green = calculateRGB(DEFAULT_COLOR_SCHEME[step1][1], DEFAULT_COLOR_SCHEME[step2][1], (minTemp + step1 * step), step, temperature);
+		uint8_t blue = calculateRGB(DEFAULT_COLOR_SCHEME[step1][2], DEFAULT_COLOR_SCHEME[step2][2], (minTemp + step1 * step), step, temperature);
+		val = rgb2color(red, green, blue);
+	}
+	return val;
+}
+
+static void GridEye_Config(void)
+{
+	uint8_t therm1, therm2;
+	uint16_t pixels[64];
+
+
+	IOE_Write(GRID_EYE_ADDR, 0x00, 0x00); //set normal mode
+	IOE_Write(GRID_EYE_ADDR, 0x02, 0x00); //set 10 FPS mode
+	IOE_Write(GRID_EYE_ADDR, 0x03, 0x00); //disable INT
+
+	therm1 = IOE_Read(GRID_EYE_ADDR, 0x0E); 
+	therm2 = IOE_Read(GRID_EYE_ADDR, 0x0F);
 }
 
 /**
@@ -286,6 +389,7 @@ void HAL_LTDC_ReloadEventCallback(LTDC_HandleTypeDef *hltdc)
 static void LCD_Config(void)
 {  
 	LTDC_LayerCfgTypeDef pLayerCfg;
+	LTDC_LayerCfgTypeDef pLayerCfg1;
 
 	  /* Initialization of ILI9341 component*/
 	ili9341_Init();
@@ -341,7 +445,7 @@ static void LCD_Config(void)
   
 	/* Layer1 Configuration ------------------------------------------------------*/
   
-	  /* Windowing configuration */ 
+	/* Windowing configuration */ 
 	pLayerCfg.WindowX0 = 0;
 	pLayerCfg.WindowX1 = 240;
 	pLayerCfg.WindowY0 = 0;
@@ -368,9 +472,39 @@ static void LCD_Config(void)
 	pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_PAxCA;
   
 	/* Configure the number of lines and number of pixels per line */
-	pLayerCfg.ImageWidth = 240;
+	pLayerCfg.ImageWidth = 160;
 	pLayerCfg.ImageHeight = 160;
 
+/* Layer2 Configuration ------------------------------------------------------*/
+  
+  /* Windowing configuration */
+	pLayerCfg1.WindowX0 = 0;
+	pLayerCfg1.WindowX1 = 240;
+	pLayerCfg1.WindowY0 = 160;
+	pLayerCfg1.WindowY1 = 320;
+  
+	/* Pixel Format configuration*/ 
+	pLayerCfg1.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
+  
+	/* Start Address configuration : frame buffer is located at FLASH memory */
+	pLayerCfg1.FBStartAdress = FRAMEBUFFER_ADDR2;
+  
+	/* Alpha constant (255 totally opaque) */
+	pLayerCfg1.Alpha = 200;
+  
+	/* Default Color configuration (configure A,R,G,B component values) */
+	pLayerCfg1.Alpha0 = 0;
+	pLayerCfg1.Backcolor.Blue = 0;
+	pLayerCfg1.Backcolor.Green = 0;
+	pLayerCfg1.Backcolor.Red = 0;
+  
+	/* Configure blending factors */
+	pLayerCfg1.BlendingFactor1 = LTDC_BLENDING_FACTOR1_PAxCA;
+	pLayerCfg1.BlendingFactor2 = LTDC_BLENDING_FACTOR2_PAxCA;
+  
+	/* Configure the number of lines and number of pixels per line */
+	pLayerCfg1.ImageWidth = 240;
+	pLayerCfg1.ImageHeight = 160;  
    
 	/* Configure the LTDC */  
 	if (HAL_LTDC_Init(&LtdcHandle) != HAL_OK)
@@ -387,11 +521,11 @@ static void LCD_Config(void)
 	}
   
 	/* Configure the Foreground Layer*/
-//	if (HAL_LTDC_ConfigLayer(&LtdcHandle, &pLayerCfg1, 1) != HAL_OK)
-//	{
-//	  /* Initialization Error */
-//		Error_Handler(); 
-//	}  
+	if (HAL_LTDC_ConfigLayer(&LtdcHandle, &pLayerCfg1, 1) != HAL_OK)
+	{
+	  /* Initialization Error */
+		Error_Handler(); 
+	}  
 }
 
 static void Error_Handler(void)
@@ -419,5 +553,3 @@ void assert_failed(uint8_t* file, uint32_t line)
   }
 }
 #endif
-
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/

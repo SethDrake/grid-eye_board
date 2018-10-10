@@ -451,9 +451,6 @@
     <ClInclude Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\portable\GCC\ARM_CM4F\portmacro.h">
       <Filter>Header files\Device-specific files\FreeRTOS</Filter>
     </ClInclude>
-    <ClInclude Include="Inc\st_logo1.h">
-      <Filter>Header files\Inc</Filter>
-    </ClInclude>
     <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery.h">
       <Filter>Header files\drivers</Filter>
     </ClInclude>
@@ -492,6 +489,9 @@
     </ClInclude>
     <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_lcd.h">
       <Filter>Header files\drivers</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc\st_logo1.h">
+      <Filter>Header files\Inc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

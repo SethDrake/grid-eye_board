@@ -65,10 +65,26 @@
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 
-#define FRAMEBUFFER_ADDR SDRAM_DEVICE_ADDR
-#define FRAMEBUFFER_SIZE 320 * 240 * 2 * 2
-#define CUSTOM_DATA_ADDR SDRAM_DEVICE_ADDR + FRAMEBUFFER_SIZE
+#define FRAMEBUFFER_ADDR  SDRAM_DEVICE_ADDR
+#define FRAMEBUFFER_SIZE  320 * 240 * 2
+#define FRAMEBUFFER_ADDR2 FRAMEBUFFER_ADDR + FRAMEBUFFER_SIZE
+#define CUSTOM_DATA_ADDR  FRAMEBUFFER_ADDR2 + FRAMEBUFFER_SIZE
 
+#define GRID_EYE_ADDR 0xD0
+
+static const uint8_t DEFAULT_COLOR_SCHEME[][3] = {
+	{ 28, 1, 108 },
+	{ 31, 17, 218 },
+	{ 50, 111, 238 },
+	{ 63, 196, 229 },
+	{ 64, 222, 135 },
+	{ 192, 240, 14 },
+	{ 223, 172, 18 },
+	{ 209, 111, 14 },
+	{ 210, 50, 28 },
+	{ 194, 26, 0 },
+	{ 132, 26, 0 }
+};
 
 #ifdef __cplusplus
 }
