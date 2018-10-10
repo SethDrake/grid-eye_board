@@ -50,3 +50,9 @@ eagle.epf
 
 # file locks introduced since 7.x
 *.lck
+/Firmware/.vs/T-Scan/v14/*.suo
+/Firmware/.vs/grid-eye-visor/v14/.suo
+/Firmware/*.opendb
+/Firmware/T-Scan.VC.db
+/Firmware/Debug
+/Firmware/VisualGDB
