@@ -30,10 +30,6 @@
 #include "cmsis_os.h"
 #include "main.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 /* Private typedef -----------------------------------------------------------*/
 extern LTDC_HandleTypeDef            LtdcHandle;
 
@@ -179,6 +175,3 @@ void hard_fault_handler(unsigned int * hardfault_args)
 	Error_Handler();
 }
 
-#ifdef __cplusplus
-}
-#endif

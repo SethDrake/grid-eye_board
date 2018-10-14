@@ -1,5 +1,6 @@
 #include "cmsis_os.h"
 #include "main.h"
+#include "st_logo1.h"
 #include <thermal.h>
 #include <ili9341.h>
 #include <stm32f429i_discovery.h>
@@ -12,7 +13,7 @@ __IO uint32_t ReloadFlag = 0;
 
 IRSensor irSensor;
 
-uint16_t pixels[160 * 160];
+uint16_t pixels[240 * 240];
 
 /* Private function prototypes -----------------------------------------------*/
 static void LED_Thread1(void const *argument);
@@ -28,7 +29,6 @@ static void LCD_Config();
 
 /**
   * @brief  Main program
-  * @param  None
   * @retval None
   */
 int main()
@@ -79,7 +79,7 @@ int main()
 
 /**
   * @brief  Toggle LED3 and LED4 thread
-  * @param  thread not used
+  * @param  argument not used
   * @retval None
   */
 static void LED_Thread1(void const *argument)
@@ -126,12 +126,11 @@ static void LED_Thread1(void const *argument)
   */
 static void LED_Thread2(void const *argument)
 {
-	uint32_t count;
 	(void) argument;
   
 	for (;;)
 	{
-		count = osKernelSysTick() + 10000;
+		const uint32_t count = osKernelSysTick() + 10000;
     
 		/* Toggle LED4 every 500 ms for 10 s */
 		while (count >= osKernelSysTick())
@@ -161,7 +160,7 @@ static void LTDC_Thread(void const *argument)
 		/* reconfigure the layer1 position  without Reloading*/
 		HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 0, 0);
 		/* reconfigure the layer2 position  without Reloading*/
-		HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 160, 1);
+		HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 240, 1);
 		/* Ask for LTDC reload within next vertical blanking*/
 		ReloadFlag = 0;
 		HAL_LTDC_Reload(&LtdcHandle, LTDC_SRCR_VBR);
@@ -194,15 +193,32 @@ static void SDRAM_Thread(void const *argument)
 static void GridEye_Thread(void const *argument)
 {
 	(void) argument;
+
+	const uint16_t batchSize = 20000;
+	uint8_t batches = sizeof(pixels) / batchSize;
+	if (batches * batchSize < sizeof(pixels))
+	{
+		batches++;	
+	}
+	
 	for (;;)
 	{
 		irSensor.readImage();
-		irSensor.visualizeImage(160, 160, pixels);
+		irSensor.visualizeImage(240, 240, pixels);
 
-		BSP_SDRAM_WriteData(FRAMEBUFFER_ADDR, (uint32_t *)&pixels, 32000);
-		BSP_SDRAM_WriteData(FRAMEBUFFER_ADDR + 32000, (uint32_t *)&pixels + (32000 / 4), sizeof(pixels) - 32000);
+		uint32_t cnt = 0;
+		for (uint8_t i = 0; i < batches; i++)
+		{
+			uint32_t size = batchSize;
+			if (i == (batches - 1))
+			{
+				size = sizeof(pixels) - ((batches - 1) *  batchSize);
+			}
+			BSP_SDRAM_WriteData(FRAMEBUFFER_ADDR + cnt, (uint32_t *)&pixels + (cnt/4), size);
+			cnt += batchSize;	
+		}
 
-		osDelay(90);
+		osDelay(50);
 	}
 }
 
@@ -224,10 +240,9 @@ static void GridEye_Thread(void const *argument)
   *            VDD(V)                         = 3.3
   *            Main regulator output voltage  = Scale1 mode
   *            Flash Latency(WS)              = 5
-  * @param  None
   * @retval None
   */
-static void SystemClock_Config(void)
+static void SystemClock_Config()
 {
 	RCC_ClkInitTypeDef RCC_ClkInitStruct;
 	RCC_OscInitTypeDef RCC_OscInitStruct;
@@ -304,7 +319,7 @@ void HAL_LTDC_ReloadEventCallback(LTDC_HandleTypeDef *hltdc)
   * @retval
   *  None
   */
-static void LCD_Config(void)
+static void LCD_Config()
 {  
 	LTDC_LayerCfgTypeDef pLayerCfg;
 	LTDC_LayerCfgTypeDef pLayerCfg1;
@@ -367,7 +382,7 @@ static void LCD_Config(void)
 	pLayerCfg.WindowX0 = 0;
 	pLayerCfg.WindowX1 = 240;
 	pLayerCfg.WindowY0 = 0;
-	pLayerCfg.WindowY1 = 160;
+	pLayerCfg.WindowY1 = 240;
   
 	/* Pixel Format configuration*/ 
 	pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
@@ -390,22 +405,22 @@ static void LCD_Config(void)
 	pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_PAxCA;
   
 	/* Configure the number of lines and number of pixels per line */
-	pLayerCfg.ImageWidth = 160;
-	pLayerCfg.ImageHeight = 160;
+	pLayerCfg.ImageWidth = 240;
+	pLayerCfg.ImageHeight = 240;
 
 /* Layer2 Configuration ------------------------------------------------------*/
   
   /* Windowing configuration */
 	pLayerCfg1.WindowX0 = 0;
 	pLayerCfg1.WindowX1 = 240;
-	pLayerCfg1.WindowY0 = 160;
+	pLayerCfg1.WindowY0 = 240;
 	pLayerCfg1.WindowY1 = 320;
   
 	/* Pixel Format configuration*/ 
 	pLayerCfg1.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
   
 	/* Start Address configuration : frame buffer is located at FLASH memory */
-	pLayerCfg1.FBStartAdress = FRAMEBUFFER_ADDR2;
+	pLayerCfg1.FBStartAdress = (uint32_t)&ST_LOGO_1;
   
 	/* Alpha constant (255 totally opaque) */
 	pLayerCfg1.Alpha = 200;
@@ -422,7 +437,7 @@ static void LCD_Config(void)
   
 	/* Configure the number of lines and number of pixels per line */
 	pLayerCfg1.ImageWidth = 240;
-	pLayerCfg1.ImageHeight = 160;  
+	pLayerCfg1.ImageHeight = 80;  
    
 	/* Configure the LTDC */  
 	if (HAL_LTDC_Init(&LtdcHandle) != HAL_OK)
@@ -446,10 +461,10 @@ static void LCD_Config(void)
 	}  
 }
 
-void Error_Handler(void)
+void Error_Handler()
 {
 	BSP_LED_On(LED4);
-	while (1) {}
+	while (true) {}
 }
 
 #ifdef  USE_FULL_ASSERT

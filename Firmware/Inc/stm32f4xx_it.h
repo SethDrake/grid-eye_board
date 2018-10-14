@@ -27,9 +27,6 @@
 #ifndef __STM32F4xx_IT_H
 #define __STM32F4xx_IT_H
 
-#ifdef __cplusplus
- extern "C" {
-#endif 
 
 /* Includes ------------------------------------------------------------------*/
 
@@ -50,10 +47,6 @@ void SysTick_Handler(void);
 void LTDC_IRQHandler(void);
 
 extern void hard_fault_handler(unsigned int * hardfault_args);
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif /* __STM32F4xx_IT_H */
 

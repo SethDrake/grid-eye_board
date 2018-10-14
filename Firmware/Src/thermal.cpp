@@ -43,7 +43,7 @@ void IRSensor::readImage()
 		taddr++;
 		const uint8_t rawH = IOE_Read(GRID_EYE_ADDR, taddr); //high
 		taddr++;
-		dots[i] = this->rawHLtoTemp(rawL, rawH, TEMP_COEFF);
+		this->dots[i] = this->rawHLtoTemp(rawL, rawH, TEMP_COEFF);
 	}
 	this->findMinAndMaxTemp();
 }
@@ -89,11 +89,11 @@ void IRSensor::findMinAndMaxTemp()
 	this->maxTemp = -100;
 	for (uint8_t i = 0; i < 64; i++)
 	{
-		if (dots[i] < this->minTemp)
+		if (this->dots[i] < this->minTemp)
 		{
 			this->minTemp = dots[i];	
 		}
-		if (dots[i] > this->maxTemp)
+		if (this->dots[i] > this->maxTemp)
 		{
 			this->maxTemp = dots[i];	
 		}
