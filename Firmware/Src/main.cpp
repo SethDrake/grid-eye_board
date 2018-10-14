@@ -1,6 +1,6 @@
-#include "main.h"
 #include "cmsis_os.h"
-#include "st_logo1.h"
+#include "main.h"
+#include <thermal.h>
 #include <ili9341.h>
 #include <stm32f429i_discovery.h>
 
@@ -10,8 +10,9 @@ LTDC_HandleTypeDef LtdcHandle;
 
 __IO uint32_t ReloadFlag = 0;
 
-uint16_t dots[64];
-uint16_t pixels[25600];
+IRSensor irSensor;
+
+uint16_t pixels[160 * 160];
 
 /* Private function prototypes -----------------------------------------------*/
 static void LED_Thread1(void const *argument);
@@ -20,15 +21,8 @@ static void LTDC_Thread(void const *argument);
 static void SDRAM_Thread(void const *argument);
 static void GridEye_Thread(void const *argument);
 
-static void GridEye_Config(void);
-static void SystemClock_Config(void);
-static void LCD_Config(void);
-
-static void Error_Handler(void);
-
-static uint16_t rgb2color(uint8_t R, uint8_t G, uint8_t B);
-static uint8_t calculateRGB(uint8_t rgb1, uint8_t rgb2, float t1, float step, float t);
-static uint16_t temperatureToRGB565(float temperature, float minTemp, float maxTemp);
+static void SystemClock_Config();
+static void LCD_Config();
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -37,48 +31,50 @@ static uint16_t temperatureToRGB565(float temperature, float minTemp, float maxT
   * @param  None
   * @retval None
   */
-int main(void)
+int main()
 {
-  /* STM32F4xx HAL library initialization:
-       - Configure the Flash prefetch, instruction and Data caches
-       - Configure the Systick to generate an interrupt each 1 msec
-       - Set NVIC Group Priority to 4
-       - Global MSP (MCU Support Package) initialization
-     */
-  HAL_Init();  
+	  /* STM32F4xx HAL library initialization:
+		   - Configure the Flash prefetch, instruction and Data caches
+		   - Configure the Systick to generate an interrupt each 1 msec
+		   - Set NVIC Group Priority to 4
+		   - Global MSP (MCU Support Package) initialization
+		 */
+	HAL_Init();  
   
-  /* Configure LED3 and LED4 */
-  BSP_LED_Init(LED3);
-  BSP_LED_Init(LED4);
+	/* Configure LED3 and LED4 */
+	BSP_LED_Init(LED3);
+	BSP_LED_Init(LED4);
   
-  /* Configure the system clock to 168 MHz */
-  SystemClock_Config();
+	/* Configure the system clock to 168 MHz */
+	SystemClock_Config();
 
-  /* Init I2C3 */
-  IOE_Init();
+		  /* Init I2C3 */
+	IOE_Init();
 
-  BSP_SDRAM_Init();
+	BSP_SDRAM_Init();
+	LCD_Config();
 
-  LCD_Config();
-	GridEye_Config();
+	irSensor.init();	
   
-  osThreadDef(LED3, LED_Thread1, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-  osThreadDef(LED4, LED_Thread2, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-  osThreadDef(LDTC, LTDC_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-  osThreadDef(SDRAM, SDRAM_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-  osThreadDef(GRID_EYE, GridEye_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+	osThreadDef(LED3, LED_Thread1, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+	osThreadDef(LED4, LED_Thread2, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+	osThreadDef(LDTC, LTDC_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+	osThreadDef(SDRAM, SDRAM_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+	osThreadDef(GRID_EYE, GridEye_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
   
-  LEDThread1Handle = osThreadCreate (osThread(LED3), NULL);
-  LEDThread2Handle = osThreadCreate (osThread(LED4), NULL);
-  LTDCThreadHandle = osThreadCreate(osThread(LDTC), NULL);
-  SDRAMThreadHandle = osThreadCreate(osThread(SDRAM), NULL);
-  GridEyeThreadHandle = osThreadCreate(osThread(GRID_EYE), NULL);
+	LEDThread1Handle = osThreadCreate(osThread(LED3), NULL);
+	LEDThread2Handle = osThreadCreate(osThread(LED4), NULL);
+	LTDCThreadHandle = osThreadCreate(osThread(LDTC), NULL);
+	SDRAMThreadHandle = osThreadCreate(osThread(SDRAM), NULL);
+	GridEyeThreadHandle = osThreadCreate(osThread(GRID_EYE), NULL);
   
-  /* Start scheduler */
-  osKernelStart();
+	/* Start scheduler */
+	osKernelStart();
 
-  /* We should never get here as control is now taken by the scheduler */
-  for(;;);
+	/* We should never get here as control is now taken by the scheduler */
+	while (true)
+	{
+	}
 }
 
 /**
@@ -88,40 +84,39 @@ int main(void)
   */
 static void LED_Thread1(void const *argument)
 {
-  uint32_t count = 0;
-  (void) argument;
+	(void) argument;
   
-  for(;;)
-  {
-    count = osKernelSysTick() + 5000;
+	for (;;)
+	{
+		uint32_t count = osKernelSysTick() + 5000;
     
-    /* Toggle LED3 every 200 ms for 5 s */
-    while (count >= osKernelSysTick())
-    {
-      BSP_LED_Toggle(LED3);
+		/* Toggle LED3 every 200 ms for 5 s */
+		while (count >= osKernelSysTick())
+		{
+			BSP_LED_Toggle(LED3);
       
-      osDelay(200);
-    }
+			osDelay(200);
+		}
     
-    /* Turn off LED3 */
-    BSP_LED_Off(LED3);
+		/* Turn off LED3 */
+		BSP_LED_Off(LED3);
     
-    /* Suspend Thread 1 */
-    //osThreadSuspend(NULL);
+		/* Suspend Thread 1 */
+		//osThreadSuspend(NULL);
     
-    count = osKernelSysTick() + 5000;
+		count = osKernelSysTick() + 5000;
     
-    /* Toggle LED3 every 400 ms for 5 s */
-    while (count >= osKernelSysTick())
-    {
-      BSP_LED_Toggle(LED3);
+		/* Toggle LED3 every 400 ms for 5 s */
+		while (count >= osKernelSysTick())
+		{
+			BSP_LED_Toggle(LED3);
       
-      osDelay(400);
-    }
+			osDelay(400);
+		}
     
-    /* Resume Thread 2 */
-    //osThreadResume(LEDThread2Handle);
-  }
+		/* Resume Thread 2 */
+		//osThreadResume(LEDThread2Handle);
+	}
 }
 
 /**
@@ -131,30 +126,30 @@ static void LED_Thread1(void const *argument)
   */
 static void LED_Thread2(void const *argument)
 {
-  uint32_t count;
-  (void) argument;
+	uint32_t count;
+	(void) argument;
   
-  for(;;)
-  {
-    count = osKernelSysTick() + 10000;
+	for (;;)
+	{
+		count = osKernelSysTick() + 10000;
     
-    /* Toggle LED4 every 500 ms for 10 s */
-    while (count >= osKernelSysTick())
-    {
-      //BSP_LED_Toggle(LED4);
+		/* Toggle LED4 every 500 ms for 10 s */
+		while (count >= osKernelSysTick())
+		{
+		  //BSP_LED_Toggle(LED4);
 
-      osDelay(500);
-    }
+			osDelay(500);
+		}
     
-    /* Turn off LED4 */
-    //BSP_LED_Off(LED4);
+		/* Turn off LED4 */
+		//BSP_LED_Off(LED4);
     
-    /* Resume Thread 1 */
-    //osThreadResume(LEDThread1Handle);
+		/* Resume Thread 1 */
+		//osThreadResume(LEDThread1Handle);
     
-    /* Suspend Thread 2 */
-    //osThreadSuspend(NULL);  
-  }
+		/* Suspend Thread 2 */
+		//osThreadSuspend(NULL);  
+	}
 }
 
 static void LTDC_Thread(void const *argument)
@@ -198,96 +193,19 @@ static void SDRAM_Thread(void const *argument)
 
 static void GridEye_Thread(void const *argument)
 {
-	(void) argument;  
+	(void) argument;
 	for (;;)
 	{
-		uint8_t taddr = 0x80;
-		for (uint8_t i = 0; i < 64; i++)
-		{
-			dots[i] = IOE_Read(GRID_EYE_ADDR, taddr); //low
-			taddr++;
-			uint16_t tmp = IOE_Read(GRID_EYE_ADDR, taddr); //high
-			taddr++;
-			tmp = tmp << 8;
-			dots[i] |= tmp;
-			dots[i] = temperatureToRGB565(dots[i] * 0.25, 15, 45);
-		}
-
-		uint32_t cntr = 0;
-		uint8_t line = 0;
-		uint8_t row = 0;
-
-		while (line < 8)
-		{
-			for (uint8_t t = 0; t < 20; t++) //repeat ten times
-			{
-				while (row < 8)
-				{
-					for (uint8_t k = 0; k < 20; k++) //repeat ten times
-					{
-						pixels[cntr] = dots[line * 8 + row];
-						cntr++;		
-					}
-					row++;
-				}
-				row = 0;
-			}
-			line++;				
-		}
+		irSensor.readImage();
+		irSensor.visualizeImage(160, 160, pixels);
 
 		BSP_SDRAM_WriteData(FRAMEBUFFER_ADDR, (uint32_t *)&pixels, 32000);
-		BSP_SDRAM_WriteData(FRAMEBUFFER_ADDR + 32000, (uint32_t *)(&pixels) + (32000/4), sizeof(pixels) - 32000);
+		BSP_SDRAM_WriteData(FRAMEBUFFER_ADDR + 32000, (uint32_t *)&pixels + (32000 / 4), sizeof(pixels) - 32000);
 
-		BSP_SDRAM_WriteData(FRAMEBUFFER_ADDR2, (uint32_t *)&dots, sizeof(dots));
 		osDelay(90);
 	}
 }
 
-static uint16_t rgb2color(uint8_t R, uint8_t G, uint8_t B)
-{
-	return ((R & 0xF8) << 8) | ((G & 0xFC) << 3) | (B >> 3);
-}
-
-static uint8_t calculateRGB(uint8_t rgb1, uint8_t rgb2, float t1, float step, float t) {
-	return (uint8_t)(rgb1 + (((t - t1) / step) * (rgb2 - rgb1)));
-}
-
-static uint16_t temperatureToRGB565(float temperature, float minTemp, float maxTemp) {
-	uint8_t r, g, b;
-
-	uint16_t val = rgb2color(DEFAULT_COLOR_SCHEME[0][0], DEFAULT_COLOR_SCHEME[0][1], DEFAULT_COLOR_SCHEME[0][2]);
-	if (temperature < minTemp) {
-		val = rgb2color(DEFAULT_COLOR_SCHEME[0][0], DEFAULT_COLOR_SCHEME[0][1], DEFAULT_COLOR_SCHEME[0][2]);
-	}
-	else if (temperature >= maxTemp) {
-		short colorSchemeSize = sizeof(DEFAULT_COLOR_SCHEME);
-		val = rgb2color(DEFAULT_COLOR_SCHEME[colorSchemeSize - 1][0], DEFAULT_COLOR_SCHEME[colorSchemeSize - 1][1], DEFAULT_COLOR_SCHEME[colorSchemeSize - 1][2]);
-	}
-	else {
-		float step = (maxTemp - minTemp) / 10.0;
-		uint8_t step1 = (uint8_t)((temperature - minTemp) / step);
-		uint8_t step2 = step1 + 1;
-		uint8_t red = calculateRGB(DEFAULT_COLOR_SCHEME[step1][0], DEFAULT_COLOR_SCHEME[step2][0], (minTemp + step1 * step), step, temperature);
-		uint8_t green = calculateRGB(DEFAULT_COLOR_SCHEME[step1][1], DEFAULT_COLOR_SCHEME[step2][1], (minTemp + step1 * step), step, temperature);
-		uint8_t blue = calculateRGB(DEFAULT_COLOR_SCHEME[step1][2], DEFAULT_COLOR_SCHEME[step2][2], (minTemp + step1 * step), step, temperature);
-		val = rgb2color(red, green, blue);
-	}
-	return val;
-}
-
-static void GridEye_Config(void)
-{
-	uint8_t therm1, therm2;
-	uint16_t pixels[64];
-
-
-	IOE_Write(GRID_EYE_ADDR, 0x00, 0x00); //set normal mode
-	IOE_Write(GRID_EYE_ADDR, 0x02, 0x00); //set 10 FPS mode
-	IOE_Write(GRID_EYE_ADDR, 0x03, 0x00); //disable INT
-
-	therm1 = IOE_Read(GRID_EYE_ADDR, 0x0E); 
-	therm2 = IOE_Read(GRID_EYE_ADDR, 0x0F);
-}
 
 /**
   * @brief  System Clock Configuration
@@ -528,7 +446,7 @@ static void LCD_Config(void)
 	}  
 }
 
-static void Error_Handler(void)
+void Error_Handler(void)
 {
 	BSP_LED_On(LED4);
 	while (1) {}
@@ -548,8 +466,8 @@ void assert_failed(uint8_t* file, uint32_t line)
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
 
   /* Infinite loop */
-  while (1)
-  {
-  }
+	while (1)
+	{
+	}
 }
 #endif

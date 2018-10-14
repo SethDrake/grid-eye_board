@@ -493,11 +493,11 @@
     <ClInclude Include="Inc\st_logo1.h">
       <Filter>Header files\Inc</Filter>
     </ClInclude>
+    <ClInclude Include="Inc\thermal.h">
+      <Filter>Header files\Inc</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Src\main.c">
-      <Filter>Source files\Src</Filter>
-    </ClCompile>
     <ClCompile Include="Src\stm32f4xx_hal_timebase_tim.c">
       <Filter>Source files\Src</Filter>
     </ClCompile>
@@ -818,6 +818,12 @@
     </ClCompile>
     <ClCompile Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_lcd.c">
       <Filter>Source files\Drivers</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\thermal.cpp">
+      <Filter>Source files\Src</Filter>
+    </ClCompile>
+    <ClCompile Include="Src\main.cpp">
+      <Filter>Source files\Src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

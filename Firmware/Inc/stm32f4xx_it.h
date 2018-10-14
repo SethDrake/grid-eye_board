@@ -32,7 +32,6 @@
 #endif 
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx.h"
 
 /* Exported types ------------------------------------------------------------*/
 /* Exported constants --------------------------------------------------------*/
@@ -49,6 +48,8 @@ void DebugMon_Handler(void);
 void PendSV_Handler(void);
 void SysTick_Handler(void);
 void LTDC_IRQHandler(void);
+
+extern void hard_fault_handler(unsigned int * hardfault_args);
 
 #ifdef __cplusplus
 }

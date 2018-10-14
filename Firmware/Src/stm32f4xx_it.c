@@ -26,10 +26,13 @@
   */
 
 /* Includes ------------------------------------------------------------------*/
-#include "main.h"
 #include "stm32f4xx_it.h"
-#include "main.h"
 #include "cmsis_os.h"
+#include "main.h"
+
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 /* Private typedef -----------------------------------------------------------*/
 extern LTDC_HandleTypeDef            LtdcHandle;
@@ -42,6 +45,7 @@ extern LTDC_HandleTypeDef            LtdcHandle;
 /******************************************************************************/
 /*            Cortex-M4 Processor Exceptions Handlers                         */
 /******************************************************************************/
+
 
 /**
   * @brief  This function handles NMI exception.
@@ -59,10 +63,11 @@ void NMI_Handler(void)
   */
 void HardFault_Handler(void)
 {
-  /* Go to infinite loop when Hard Fault exception occurs */
-  while (1)
-  {
-  }
+	__ASM("TST LR, #4");
+	__ASM("ITE EQ");
+	__ASM("MRSEQ R0, MSP");
+	__ASM("MRSNE R0, PSP");
+	__ASM("B hard_fault_handler");
 }
 
 /**
@@ -72,10 +77,10 @@ void HardFault_Handler(void)
   */
 void MemManage_Handler(void)
 {
-  /* Go to infinite loop when Memory Manage exception occurs */
-  while (1)
-  {
-  }
+	Error_Handler();
+	while (1)
+	{
+	}
 }
 
 /**
@@ -85,10 +90,10 @@ void MemManage_Handler(void)
   */
 void BusFault_Handler(void)
 {
-  /* Go to infinite loop when Bus Fault exception occurs */
-  while (1)
-  {
-  }
+	Error_Handler();
+	while (1)
+	{
+	}
 }
 
 /**
@@ -98,10 +103,10 @@ void BusFault_Handler(void)
   */
 void UsageFault_Handler(void)
 {
-  /* Go to infinite loop when Usage Fault exception occurs */
-  while (1)
-  {
-  }
+	Error_Handler();
+	while (1)
+	{
+	}
 }
 
 /**
@@ -149,4 +154,31 @@ void LTDC_IRQHandler(void)
 {
 }*/
 
-/************************ (C) COPYRIGHT STMicroelectronics *****END OF FILE****/
+
+void hard_fault_handler(unsigned int * hardfault_args)
+{
+	unsigned int stacked_r0;
+	unsigned int stacked_r1;
+	unsigned int stacked_r2;
+	unsigned int stacked_r3;
+	unsigned int stacked_r12;
+	unsigned int stacked_lr;
+	unsigned int stacked_pc;
+	unsigned int stacked_psr;
+
+	stacked_r0 = ((unsigned long) hardfault_args[0]);
+	stacked_r1 = ((unsigned long) hardfault_args[1]);
+	stacked_r2 = ((unsigned long) hardfault_args[2]);
+	stacked_r3 = ((unsigned long) hardfault_args[3]);
+
+	stacked_r12 = ((unsigned long) hardfault_args[4]);
+	stacked_lr = ((unsigned long) hardfault_args[5]);
+	stacked_pc = ((unsigned long) hardfault_args[6]);
+	stacked_psr = ((unsigned long) hardfault_args[7]);
+
+	Error_Handler();
+}
+
+#ifdef __cplusplus
+}
+#endif
