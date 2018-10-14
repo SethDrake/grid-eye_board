@@ -5,7 +5,7 @@
 #include <ili9341.h>
 #include <stm32f429i_discovery.h>
 
-osThreadId LEDThread1Handle, LEDThread2Handle, LTDCThreadHandle, SDRAMThreadHandle, GridEyeThreadHandle;
+osThreadId LEDThread1Handle, LEDThread2Handle, LTDCThreadHandle, SDRAMThreadHandle, GridEyeThreadHandle, DrawThreadHandle;
 
 LTDC_HandleTypeDef LtdcHandle;
 
@@ -13,7 +13,7 @@ __IO uint32_t ReloadFlag = 0;
 
 IRSensor irSensor;
 
-uint16_t pixels[240 * 240];
+uint16_t pixels[THERMAL_RESOLUTION * THERMAL_RESOLUTION];
 
 /* Private function prototypes -----------------------------------------------*/
 static void LED_Thread1(void const *argument);
@@ -21,6 +21,7 @@ static void LED_Thread2(void const *argument);
 static void LTDC_Thread(void const *argument);
 static void SDRAM_Thread(void const *argument);
 static void GridEye_Thread(void const *argument);
+static void Draw_Thread(void const *argument);
 
 static void SystemClock_Config();
 static void LCD_Config();
@@ -61,12 +62,14 @@ int main()
 	osThreadDef(LDTC, LTDC_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(SDRAM, SDRAM_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(GRID_EYE, GridEye_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+	osThreadDef(DRAW, Draw_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
   
 	LEDThread1Handle = osThreadCreate(osThread(LED3), NULL);
 	LEDThread2Handle = osThreadCreate(osThread(LED4), NULL);
 	LTDCThreadHandle = osThreadCreate(osThread(LDTC), NULL);
 	SDRAMThreadHandle = osThreadCreate(osThread(SDRAM), NULL);
 	GridEyeThreadHandle = osThreadCreate(osThread(GRID_EYE), NULL);
+	DrawThreadHandle = osThreadCreate(osThread(DRAW), NULL);
   
 	/* Start scheduler */
 	osKernelStart();
@@ -192,6 +195,16 @@ static void SDRAM_Thread(void const *argument)
 
 static void GridEye_Thread(void const *argument)
 {
+	(void) argument;	
+	for (;;)
+	{
+		irSensor.readImage();
+		osDelay(100);
+	}
+}
+
+static void Draw_Thread(void const *argument)
+{
 	(void) argument;
 
 	const uint16_t batchSize = 20000;
@@ -203,8 +216,7 @@ static void GridEye_Thread(void const *argument)
 	
 	for (;;)
 	{
-		irSensor.readImage();
-		irSensor.visualizeImage(240, 240, pixels);
+		irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, pixels);
 
 		uint32_t cnt = 0;
 		for (uint8_t i = 0; i < batches; i++)
@@ -212,13 +224,13 @@ static void GridEye_Thread(void const *argument)
 			uint32_t size = batchSize;
 			if (i == (batches - 1))
 			{
-				size = sizeof(pixels) - ((batches - 1) *  batchSize);
+				size = sizeof(pixels) - ((batches - 1) * batchSize);
 			}
 			BSP_SDRAM_WriteData(FRAMEBUFFER_ADDR + cnt, (uint32_t *)&pixels + (cnt/4), size);
 			cnt += batchSize;	
 		}
 
-		osDelay(50);
+		osDelay(100);
 	}
 }
 
@@ -405,8 +417,8 @@ static void LCD_Config()
 	pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_PAxCA;
   
 	/* Configure the number of lines and number of pixels per line */
-	pLayerCfg.ImageWidth = 240;
-	pLayerCfg.ImageHeight = 240;
+	pLayerCfg.ImageWidth = THERMAL_RESOLUTION;
+	pLayerCfg.ImageHeight = THERMAL_RESOLUTION;
 
 /* Layer2 Configuration ------------------------------------------------------*/
   
@@ -420,7 +432,7 @@ static void LCD_Config()
 	pLayerCfg1.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
   
 	/* Start Address configuration : frame buffer is located at FLASH memory */
-	pLayerCfg1.FBStartAdress = (uint32_t)&ST_LOGO_1;
+	//pLayerCfg1.FBStartAdress = (uint32_t)&ST_LOGO_1;
   
 	/* Alpha constant (255 totally opaque) */
 	pLayerCfg1.Alpha = 200;

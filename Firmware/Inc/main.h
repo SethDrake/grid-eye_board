@@ -25,6 +25,8 @@ extern "C" {
 #define FRAMEBUFFER_ADDR2 FRAMEBUFFER_ADDR + FRAMEBUFFER_SIZE
 #define CUSTOM_DATA_ADDR  FRAMEBUFFER_ADDR2 + FRAMEBUFFER_SIZE
 
+#define THERMAL_RESOLUTION 64
+
 extern void Error_Handler(void);
 
 #ifdef __cplusplus

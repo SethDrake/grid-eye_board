@@ -71,7 +71,7 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, uint16_t* 
 			{
 				for (uint8_t k = 0; k < rrepeat; k++) //repeat
 				{
-					framebuffer[cntr] = this->temperatureToRGB565(dots[line * 8 + row], minTemp - 5, maxTemp + 5);
+					framebuffer[cntr] = this->temperatureToRGB565(dots[line * 8 + row], minTemp - 2, maxTemp + 3);
 					cntr++;		
 				}
 				row++;
