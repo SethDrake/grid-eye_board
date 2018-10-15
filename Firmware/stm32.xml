@@ -33,6 +33,7 @@
   <MCUMakFile>stm32.mak</MCUMakFile>
   <ReferencedFrameworks>
     <string>com.sysprogs.arm.stm32.freertos</string>
+    <string>com.sysprogs.arm.stm32.utilities</string>
     <string>com.sysprogs.arm.stm32.hal</string>
   </ReferencedFrameworks>
   <FrameworkProperties>
@@ -44,6 +45,18 @@
       <KeyValue>
         <Key>com.sysprogs.bspoptions.stm32.freertos.portcore</Key>
         <Value>CM4F</Value>
+      </KeyValue>
+      <KeyValue>
+        <Key>com.sysprogs.bspoptions.stm32.utils.cpu</Key>
+        <Value>1</Value>
+      </KeyValue>
+      <KeyValue>
+        <Key>com.sysprogs.bspoptions.stm32.utils.fonts</Key>
+        <Value />
+      </KeyValue>
+      <KeyValue>
+        <Key>com.sysprogs.bspoptions.stm32.utils.log</Key>
+        <Value />
       </KeyValue>
     </Entries>
   </FrameworkProperties>

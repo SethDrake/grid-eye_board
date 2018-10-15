@@ -12,17 +12,18 @@ class IRSensor {
 public:
 	IRSensor();
 	~IRSensor();
-	void init();
+	void init(const uint32_t fb_addr);
 	float readThermistor();
 	void readImage();
 	float* getTempMap();
-	void visualizeImage(uint8_t resX, uint8_t resY, uint16_t* framebuffer);
+	void visualizeImage(uint8_t resX, uint8_t resY);
 protected:
 	void findMinAndMaxTemp();
 	uint16_t rgb2color(uint8_t R, uint8_t G, uint8_t B);
 	uint8_t calculateRGB(uint8_t rgb1, uint8_t rgb2, float t1, float step, float t);
 	uint16_t temperatureToRGB565(float temperature, float minTemp, float maxTemp);
 private:
+	uint32_t fb_addr;
 	float dots[64];
 	float minTemp;
 	float maxTemp;

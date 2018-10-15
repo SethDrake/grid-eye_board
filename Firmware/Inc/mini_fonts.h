@@ -1,7 +1,7 @@
 
 
-#ifndef __FONTS_H__
-#define __FONTS_H__
+#ifndef __MINI_FONTS_H__
+#define __MINI_FONTS_H__
 
 #ifdef __cplusplus
 extern "C"
@@ -120,4 +120,4 @@ static const unsigned char Consolas8x14[] = {
 }
 #endif
 
-#endif //__FONTS_H__
+#endif //__MINI_FONTS_H__

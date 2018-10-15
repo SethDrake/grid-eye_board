@@ -2,7 +2,7 @@
 #include <cstdarg>
 #include <cstring>
 #include <framebuffer.h>
-#include <fonts.h>
+#include <mini_fonts.h>
 #include "stm32f4xx_hal.h"
 
 Framebuffer::Framebuffer()
@@ -31,7 +31,6 @@ void Framebuffer::init(const uint32_t fb_addr, const uint16_t fb_sizeX, const ui
 	this->fb_sizeX = fb_sizeX;
 	this->fb_sizeY = fb_sizeY;
 	this->fb_addr = fb_addr;
-	//this->fb = new uint16_t[this->fb_sizeX * this->fb_sizeY];
 	this->setTextColor(color, bg_color);
 }
 
@@ -161,7 +160,7 @@ void Framebuffer::printf(const uint16_t x, const uint16_t y, const uint16_t char
 {
 	char buf[40];
 	va_list args;
-	//va_start(args, format);
+	va_start(args, format);
 	vsprintf(buf, format, args);
 	putString(buf, x, y, charColor, bkgColor);
 }
@@ -170,7 +169,7 @@ void Framebuffer::printf(const uint16_t x, const uint16_t y, const char* format,
 {
 	char buf[40];
 	va_list args;
-	//va_start(args, format);
+	va_start(args, format);
 	vsprintf(buf, format, args);
 	putString(buf, x, y, color, bg_color);
 }

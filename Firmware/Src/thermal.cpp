@@ -20,11 +20,12 @@ float IRSensor::rawHLtoTemp(const uint8_t rawL, const uint8_t rawH, const float 
 	return temp;
 }
 
-void IRSensor::init()
+void IRSensor::init(const uint32_t fb_addr)
 {
 	IOE_Write(GRID_EYE_ADDR, 0x00, 0x00); //set normal mode
 	IOE_Write(GRID_EYE_ADDR, 0x02, 0x00); //set 10 FPS mode
 	IOE_Write(GRID_EYE_ADDR, 0x03, 0x00); //disable INT
+	this->fb_addr = fb_addr;
 }
 
 float IRSensor::readThermistor()
@@ -54,14 +55,15 @@ float* IRSensor::getTempMap()
 }
 
 
-void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, uint16_t* framebuffer)
+void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY)
 {
-	uint32_t cntr = 0;
 	uint8_t line = 0;
 	uint8_t row = 0;
 
 	const uint8_t lrepeat = resX / 8;
 	const uint8_t rrepeat = resY / 8;
+
+	volatile uint16_t *pSdramAddress = (uint16_t *)this->fb_addr;
 
 	while (line < 8)
 	{
@@ -69,10 +71,11 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, uint16_t* 
 		{
 			while (row < 8)
 			{
+				const uint16_t color = this->temperatureToRGB565(dots[line * 8 + row], minTemp - 2, maxTemp + 3);
 				for (uint8_t k = 0; k < rrepeat; k++) //repeat
 				{
-					framebuffer[cntr] = this->temperatureToRGB565(dots[line * 8 + row], minTemp - 2, maxTemp + 3);
-					cntr++;		
+					*(volatile uint16_t *)pSdramAddress = color;
+					pSdramAddress++;	
 				}
 				row++;
 			}

@@ -50,6 +50,12 @@
     <Filter Include="Source files\Drivers">
       <UniqueIdentifier>{23c41b9e-c10c-4d1c-a29b-7cba184846eb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source files\Device-specific files\Utilities">
+      <UniqueIdentifier>{fa16fe83-555c-41c7-a860-e9ed8f272715}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header files\Device-specific files\Utilities">
+      <UniqueIdentifier>{b399a03c-bb20-403d-bed6-e2cc3977ec4e}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Inc\FreeRTOSConfig.h">
@@ -493,10 +499,13 @@
     <ClInclude Include="Inc\thermal.h">
       <Filter>Header files\Inc</Filter>
     </ClInclude>
-    <ClInclude Include="Inc\fonts.h">
+    <ClInclude Include="framebuffer.h">
       <Filter>Header files\Inc</Filter>
     </ClInclude>
-    <ClInclude Include="framebuffer.h">
+    <ClInclude Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\Utilities\CPU\cpu_utils.h">
+      <Filter>Header files\Device-specific files\Utilities</Filter>
+    </ClInclude>
+    <ClInclude Include="Inc\mini_fonts.h">
       <Filter>Header files\Inc</Filter>
     </ClInclude>
   </ItemGroup>
@@ -612,11 +621,17 @@
     <ClCompile Include="Src\main.cpp">
       <Filter>Source files\Src</Filter>
     </ClCompile>
+    <ClCompile Include="framebuffer.cpp">
+      <Filter>Source files\Src</Filter>
+    </ClCompile>
     <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\croutine.c">
       <Filter>Source files\Device-specific files\FreeRTOS</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\event_groups.c">
       <Filter>Source files\Device-specific files\FreeRTOS</Filter>
+    </ClCompile>
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\Utilities\CPU\cpu_utils.c">
+      <Filter>Source files\Device-specific files\Utilities</Filter>
     </ClCompile>
     <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_adc.c">
       <Filter>Source files\Device-specific files\HAL</Filter>
@@ -827,9 +842,6 @@
     </ClCompile>
     <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_utils.c">
       <Filter>Source files\Device-specific files\HAL</Filter>
-    </ClCompile>
-    <ClCompile Include="framebuffer.cpp">
-      <Filter>Source files\Src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

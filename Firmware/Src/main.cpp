@@ -12,12 +12,12 @@ LTDC_HandleTypeDef LtdcHandle;
 
 __IO uint32_t ReloadFlag = 0;
 
-Framebuffer fbRight;
+Framebuffer fbInfoPanel;
 IRSensor irSensor;
 
 __IO bool isDataReady;
 
-uint16_t pixels[THERMAL_RESOLUTION * THERMAL_RESOLUTION];
+//uint16_t pixels[THERMAL_RESOLUTION * THERMAL_RESOLUTION];
 
 /* Private function prototypes -----------------------------------------------*/
 static void LED_Thread1(void const *argument);
@@ -58,15 +58,11 @@ int main()
 	BSP_SDRAM_Init();
 	LCD_Config();
 
-	fbRight.init(FRAMEBUFFER_ADDR2, 80, 240, 0xffff, 0x0000);
-	fbRight.clear(COLOR_BLACK);
-	fbRight.setOrientation(LANDSCAPE);
+	fbInfoPanel.init(FRAMEBUFFER_ADDR2, 80, 240, 0xffff, 0x0000);
+	fbInfoPanel.clear(COLOR_BLACK);
+	fbInfoPanel.setOrientation(LANDSCAPE);
 
-	fbRight.pixelDraw(0, 0, COLOR_WHITE);
-	fbRight.pixelDraw(50, 5, COLOR_RED);
-	fbRight.putString("TEST", 0, 0, COLOR_BLUE, COLOR_BLACK);
-
-	irSensor.init();	
+	irSensor.init(FRAMEBUFFER_ADDR);	
   
 	osThreadDef(LED3, LED_Thread1, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(LED4, LED_Thread2, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
@@ -100,34 +96,8 @@ static void LED_Thread1(void const *argument)
   
 	for (;;)
 	{
-		uint32_t count = osKernelSysTick() + 5000;
-    
-		/* Toggle LED3 every 200 ms for 5 s */
-		while (count >= osKernelSysTick())
-		{
-			BSP_LED_Toggle(LED3);
-      
-			osDelay(200);
-		}
-    
-		/* Turn off LED3 */
-		BSP_LED_Off(LED3);
-    
-		/* Suspend Thread 1 */
-		//osThreadSuspend(NULL);
-    
-		count = osKernelSysTick() + 5000;
-    
-		/* Toggle LED3 every 400 ms for 5 s */
-		while (count >= osKernelSysTick())
-		{
-			BSP_LED_Toggle(LED3);
-      
-			osDelay(400);
-		}
-    
-		/* Resume Thread 2 */
-		//osThreadResume(LEDThread2Handle);
+		BSP_LED_Toggle(LED3);
+		osDelay(500);
 	}
 }
 
@@ -142,24 +112,7 @@ static void LED_Thread2(void const *argument)
   
 	for (;;)
 	{
-		const uint32_t count = osKernelSysTick() + 10000;
-    
-		/* Toggle LED4 every 500 ms for 10 s */
-		while (count >= osKernelSysTick())
-		{
-		  //BSP_LED_Toggle(LED4);
-
-			osDelay(500);
-		}
-    
-		/* Turn off LED4 */
-		//BSP_LED_Off(LED4);
-    
-		/* Resume Thread 1 */
-		//osThreadResume(LEDThread1Handle);
-    
-		/* Suspend Thread 2 */
-		//osThreadSuspend(NULL);  
+		osDelay(1000);
 	}
 }
 
@@ -167,55 +120,37 @@ static void LTDC_Thread(void const *argument)
 {
 	(void) argument;
 
-	const uint16_t batchSize = 24000;
-	uint8_t batches = sizeof(pixels) / batchSize;
-	if (batches * batchSize < sizeof(pixels))
-	{
-		batches++;	
-	}
-
 	/* reconfigure the layer1 position  without Reloading*/
 	HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 0, 0);
 	/* reconfigure the layer2 position  without Reloading*/
 	HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 240, 1);
 
-	uint32_t ticks, prevTicks;
-  
-	prevTicks = osKernelSysTick();
+	TickType_t xTime1, xTime2, xExecutionTime;
 
 	for (;;)
 	{
 		if (isDataReady)
 		{
-			
-			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, pixels);
+			xTime1 = xTaskGetTickCount();
+			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION);
+			isDataReady = false;
 
-			uint32_t cnt = 0;
-			for (uint8_t i = 0; i < batches; i++)
-			{
-				uint32_t size = batchSize;
-				if (i == (batches - 1))
-				{
-					size = sizeof(pixels) - ((batches - 1) * batchSize);
-				}
-				BSP_SDRAM_WriteData(FRAMEBUFFER_ADDR + cnt, (uint32_t *)&pixels + (cnt / 4), size);
-				cnt += batchSize;	
-			}
+			const uint16_t cpuUsage = osGetCPUUsage();
+			fbInfoPanel.printf(4, 0, COLOR_WHITE, COLOR_BLACK, "CPU: %02u%%", cpuUsage);
 
-			ticks = osKernelSysTick();
-			uint32_t diff = ticks - prevTicks;
-			prevTicks = ticks;
+			xTime2 = xTaskGetTickCount();
+			xExecutionTime = xTime2 - xTime1;
+			fbInfoPanel.printf(4, 12, COLOR_WHITE, COLOR_BLACK, "FPS: %03u", xExecutionTime);
+
 		
 			/* Ask for LTDC reload within next vertical blanking*/
 			//ReloadFlag = 0;
 			//HAL_LTDC_Reload(&LtdcHandle, LTDC_SRCR_VBR);
       
 			//while (ReloadFlag == 0)
-			{
+			//{
 			  /* wait till reload takes effect (in the next vertical blanking period) */
-			}
-
-			isDataReady = false;
+			//}
 		}
 		
 		osDelay(50);
@@ -230,10 +165,6 @@ static void SDRAM_Thread(void const *argument)
 	(void) argument;  
 	for (;;)
 	{
-		uint32_t testData[buf_size] = { 1, 2, 3, 4, 5, 6, 7, 8 };
-		uint32_t testData2[buf_size];
-		//BSP_SDRAM_WriteData(CUSTOM_DATA_ADDR, testData, buf_size);
-		//BSP_SDRAM_ReadData(CUSTOM_DATA_ADDR, testData2, buf_size);
 		osDelay(1000);
 	}
 }

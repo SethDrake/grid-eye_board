@@ -35,7 +35,7 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|VisualGDB'">
     <ClCompile>
-      <AdditionalIncludeDirectories>Inc;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/STM32F4xxxx/CMSIS_HAL/Device/ST/STM32F4xx/Include;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/STM32F4xxxx/STM32F4xx_HAL_Driver/Inc;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/Components;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/STM32F429I-Discovery;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/FreeRTOS/Source/portable/GCC/ARM_CM4F;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/FreeRTOS/Source/CMSIS_RTOS;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/FreeRTOS/Source/include;Support/STM32Cube_FW_F4_V1.19.0/Utilities;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/STM32F4xxxx/CMSIS_HAL/Include;C:/SysGCC/arm-eabi/arm-eabi/include/c++/7.2.0;C:/SysGCC/arm-eabi/arm-eabi/include;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/common;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/ili9341;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/l3gd20;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/stmpe811;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/fonts;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>Inc;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/STM32F4xxxx/CMSIS_HAL/Device/ST/STM32F4xx/Include;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/STM32F4xxxx/STM32F4xx_HAL_Driver/Inc;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/Components;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/STM32F429I-Discovery;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/FreeRTOS/Source/portable/GCC/ARM_CM4F;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/FreeRTOS/Source/CMSIS_RTOS;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/FreeRTOS/Source/include;Support/STM32Cube_FW_F4_V1.19.0/Utilities;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/STM32F4xxxx/CMSIS_HAL/Include;C:/SysGCC/arm-eabi/arm-eabi/include/c++/7.2.0;C:/SysGCC/arm-eabi/arm-eabi/include;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/common;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/ili9341;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/l3gd20;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/stmpe811;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/fonts;C:/Users/serge/AppData/Local/VisualGDB/EmbeddedBSPs/arm-eabi/com.sysprogs.arm.stm32/Utilities/CPU;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>DEBUG=1;USE_HAL_DRIVER;USE_STM32F429I_DISCO;STM32F429xx;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
       <DumpStackUsage>true</DumpStackUsage>
     </ClCompile>
@@ -48,9 +48,15 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|VisualGDB'">
     <ClCompile>
-      <AdditionalIncludeDirectories>Inc;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/STM32F4xxxx/CMSIS_HAL/Device/ST/STM32F4xx/Include;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/STM32F4xxxx/STM32F4xx_HAL_Driver/Inc;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/Components;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/STM32F429I-Discovery;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/FreeRTOS/Source/portable/GCC/ARM_CM4F;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/FreeRTOS/Source/CMSIS_RTOS;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/FreeRTOS/Source/include;Support/STM32Cube_FW_F4_V1.19.0/Utilities;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/STM32F4xxxx/CMSIS_HAL/Include;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>%(ClCompile.PreprocessorDefinitions);NDEBUG=1;RELEASE=1;USE_HAL_DRIVER;USE_STM32F429I_DISCO;STM32F429xx</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>Inc;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/STM32F4xxxx/CMSIS_HAL/Device/ST/STM32F4xx/Include;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/STM32F4xxxx/STM32F4xx_HAL_Driver/Inc;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/Components;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/STM32F429I-Discovery;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/FreeRTOS/Source/portable/GCC/ARM_CM4F;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/FreeRTOS/Source/CMSIS_RTOS;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/FreeRTOS/Source/include;Support/STM32Cube_FW_F4_V1.19.0/Utilities;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/STM32F4xxxx/CMSIS_HAL/Include;C:/SysGCC/arm-eabi/arm-eabi/include/c++/7.2.0;C:/SysGCC/arm-eabi/arm-eabi/include;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/common;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/ili9341;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/l3gd20;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/stmpe811;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/fonts;C:/Users/serge/AppData/Local/VisualGDB/EmbeddedBSPs/arm-eabi/com.sysprogs.arm.stm32/Utilities/CPU;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG=1;RELEASE=1;USE_HAL_DRIVER;USE_STM32F429I_DISCO;STM32F429xx;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
+    <Link>
+      <AdditionalLinkerInputs>;%(Link.AdditionalLinkerInputs)</AdditionalLinkerInputs>
+      <LibrarySearchDirectories>;%(Link.LibrarySearchDirectories)</LibrarySearchDirectories>
+      <AdditionalLibraryNames>;%(Link.AdditionalLibraryNames)</AdditionalLibraryNames>
+      <LinkerScript />
+    </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.h" />
@@ -182,8 +188,9 @@
     <ClInclude Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Inc\stm32f4xx_ll_usb.h" />
     <ClInclude Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Inc\stm32f4xx_ll_utils.h" />
     <ClInclude Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Inc\stm32f4xx_ll_wwdg.h" />
+    <ClInclude Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\Utilities\CPU\cpu_utils.h" />
     <ClInclude Include="framebuffer.h" />
-    <ClInclude Include="Inc\fonts.h" />
+    <ClInclude Include="Inc\mini_fonts.h" />
     <ClInclude Include="Inc\FreeRTOSConfig.h" />
     <ClInclude Include="Inc\main.h" />
     <ClInclude Include="Inc\stm32f4xx_hal_conf.h" />
@@ -299,6 +306,7 @@
     <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_usart.c" />
     <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_usb.c" />
     <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_utils.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\Utilities\CPU\cpu_utils.c" />
     <ClCompile Include="framebuffer.cpp" />
     <ClCompile Include="Src\main.cpp" />
     <ClCompile Include="Src\stm32f4xx_hal_timebase_tim.c" />
