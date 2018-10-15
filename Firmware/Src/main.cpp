@@ -132,7 +132,7 @@ static void GridEye_Thread(void const *argument)
 	{
 		irSensor.readImage();
 		isDataReady = true;
-		osDelay(100);
+		osDelay(95);
 	}
 }
 
@@ -152,7 +152,7 @@ static void LTDC_Thread(void const *argument)
 		if (isDataReady)
 		{
 			//xTime1 = xTaskGetTickCount();
-			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION);
+			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, 0);
 			isDataReady = false;
 
 			const uint16_t cpuUsage = osGetCPUUsage();
@@ -404,26 +404,27 @@ static void LCD_Config()
 	if (HAL_LTDC_Init(&LtdcHandle) != HAL_OK)
 	{
 	  /* Initialization Error */
-		Error_Handler(); 
+		Error_Handler(10); 
 	}
 
 	  /* Configure the Background Layer*/
 	if (HAL_LTDC_ConfigLayer(&LtdcHandle, &pLayerCfg, 0) != HAL_OK)
 	{
 	  /* Initialization Error */
-		Error_Handler(); 
+		Error_Handler(11); 
 	}
   
 	/* Configure the Foreground Layer*/
 	if (HAL_LTDC_ConfigLayer(&LtdcHandle, &pLayerCfg1, 1) != HAL_OK)
 	{
 	  /* Initialization Error */
-		Error_Handler(); 
+		Error_Handler(12); 
 	}  
 }
 
-void Error_Handler()
+void Error_Handler(const uint8_t source)
 {
+	uint8_t k = source;
 	BSP_LED_On(LED4);
 	while (true) {}
 }

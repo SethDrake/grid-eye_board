@@ -73,7 +73,7 @@ void HardFault_Handler(void)
   */
 void MemManage_Handler(void)
 {
-	Error_Handler();
+	Error_Handler(1);
 	while (1)
 	{
 	}
@@ -86,7 +86,7 @@ void MemManage_Handler(void)
   */
 void BusFault_Handler(void)
 {
-	Error_Handler();
+	Error_Handler(2);
 	while (1)
 	{
 	}
@@ -99,7 +99,7 @@ void BusFault_Handler(void)
   */
 void UsageFault_Handler(void)
 {
-	Error_Handler();
+	Error_Handler(3);
 	while (1)
 	{
 	}
@@ -172,6 +172,6 @@ void hard_fault_handler(unsigned int * hardfault_args)
 	stacked_pc = ((unsigned long) hardfault_args[6]);
 	stacked_psr = ((unsigned long) hardfault_args[7]);
 
-	Error_Handler();
+	Error_Handler(0);
 }
 

@@ -29,7 +29,7 @@ extern "C" {
 
 #define THERMAL_RESOLUTION 240
 
-extern void Error_Handler();
+	extern void Error_Handler(const uint8_t source);
 
 #ifdef __cplusplus
 }

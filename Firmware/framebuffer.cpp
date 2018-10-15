@@ -9,7 +9,7 @@ Framebuffer::Framebuffer()
 {
 	this->fb_sizeX = 0;
 	this->fb_sizeY = 0;
-	this->fb_addr = NULL;
+	this->fb_addr = 0;
 	this->color = 0xffff;
 	this->bg_color = 0x0000;
 	this->font = Consolas8x14;
@@ -18,9 +18,9 @@ Framebuffer::Framebuffer()
 
 Framebuffer::~Framebuffer()
 {
-	if (this->fb_addr != NULL)
+	if (this->fb_addr != 0)
 	{
-		this->fb_addr = NULL;	
+		this->fb_addr = 0;	
 	}
 	this->fb_sizeX = 0;
 	this->fb_sizeY = 0;

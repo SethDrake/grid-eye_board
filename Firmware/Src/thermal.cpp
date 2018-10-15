@@ -2,12 +2,14 @@
 
 IRSensor::IRSensor()
 {
+	this->fb_addr = 0;
+	this->minTemp = 0;
+	this->maxTemp = 0;
 }
 
 IRSensor::~IRSensor()
 {
 }
-
 
 float IRSensor::rawHLtoTemp(const uint8_t rawL, const uint8_t rawH, const float coeff)
 {
@@ -64,36 +66,78 @@ float IRSensor::getMinTemp()
 	return this->minTemp;
 }
 
-void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY)
+void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint8_t method)
 {
 	uint8_t line = 0;
 	uint8_t row = 0;
-
-	const uint8_t lrepeat = resX / 8;
-	const uint8_t rrepeat = resY / 8;
+	float temp;
+	float temp_next_line;
 
 	volatile uint16_t *pSdramAddress = (uint16_t *)this->fb_addr;
 
-	while (line < 8)
+	if (method == 0)
 	{
-		for (uint8_t t = 0; t < lrepeat; t++) //repeat
+		const uint8_t lrepeat = resX / 8;
+		const uint8_t rrepeat = resY / 8;
+		while (line < 8)
 		{
-			while (row < 8)
+			for (uint8_t t = 0; t < lrepeat; t++) //repeat
 			{
-				const uint16_t color = this->temperatureToRGB565(dots[line * 8 + row], minTemp - 2, maxTemp + 3);
-				for (uint8_t k = 0; k < rrepeat; k++) //repeat
+				while (row < 8)
 				{
-					*(volatile uint16_t *)pSdramAddress = color;
-					pSdramAddress++;	
+					temp = dots[line * 8 + row];
+					const uint16_t color = this->temperatureToRGB565(temp, minTemp - 2, maxTemp + 3);
+					for (uint8_t k = 0; k < rrepeat; k++) //repeat
+					{
+						*(volatile uint16_t *)pSdramAddress = color;
+						pSdramAddress++;	
+					}
+					row++;
 				}
-				row++;
+				row = 0;
 			}
-			row = 0;
+			line++;				
 		}
-		line++;				
+	}
+	else if (method == 1)
+	{
+		const uint8_t lrepeat = resX / 8;
+		const uint8_t rrepeat = resY / 8;
+		while (line < 8)
+		{
+			for (uint8_t t = 0; t < lrepeat; t++) //repeat
+			{
+				while (row < 8)
+				{
+					for (uint8_t k = 0; k < rrepeat; k++) //repeat
+					{
+						temp = dots[line * 8 + row];
+						if (row < 7)
+						{
+							temp = interpolate(temp, dots[line * 8 + row + 1], k, rrepeat);							
+						}
+						if (line < 7)
+						{
+							temp = interpolate(temp, dots[(line + 1) * 8 + row], t, lrepeat);													
+						}
+						*(volatile uint16_t *)pSdramAddress = this->temperatureToRGB565(temp, minTemp - 2, maxTemp + 3);
+						pSdramAddress++;	
+					}
+					row++;
+				}
+				row = 0;
+			}
+			line++;				
+		}		
 	}
 }
 
+float IRSensor::interpolate(float t1, float t2, uint8_t step, uint8_t steps)
+{
+	float diff = t2 - t1;
+	float delta = diff / steps;
+	return t1 + step * delta;
+}
 
 void IRSensor::findMinAndMaxTemp()
 {

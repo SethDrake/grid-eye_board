@@ -18,12 +18,13 @@ public:
 	float* getTempMap();
 	float getMaxTemp();
 	float getMinTemp();
-	void visualizeImage(uint8_t resX, uint8_t resY);
+	void visualizeImage(uint8_t resX, uint8_t resY, const uint8_t method);
 protected:
 	void findMinAndMaxTemp();
 	uint16_t rgb2color(uint8_t R, uint8_t G, uint8_t B);
 	uint8_t calculateRGB(uint8_t rgb1, uint8_t rgb2, float t1, float step, float t);
 	uint16_t temperatureToRGB565(float temperature, float minTemp, float maxTemp);
+	float interpolate(float t1, float t2, uint8_t step, uint8_t steps);
 private:
 	uint32_t fb_addr;
 	float dots[64];
