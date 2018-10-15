@@ -16,6 +16,8 @@ public:
 	float readThermistor();
 	void readImage();
 	float* getTempMap();
+	float getMaxTemp();
+	float getMinTemp();
 	void visualizeImage(uint8_t resX, uint8_t resY);
 protected:
 	void findMinAndMaxTemp();

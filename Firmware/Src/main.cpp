@@ -116,50 +116,6 @@ static void LED_Thread2(void const *argument)
 	}
 }
 
-static void LTDC_Thread(void const *argument)
-{
-	(void) argument;
-
-	/* reconfigure the layer1 position  without Reloading*/
-	HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 0, 0);
-	/* reconfigure the layer2 position  without Reloading*/
-	HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 240, 1);
-
-	TickType_t xTime1, xTime2, xExecutionTime;
-
-	for (;;)
-	{
-		if (isDataReady)
-		{
-			xTime1 = xTaskGetTickCount();
-			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION);
-			isDataReady = false;
-
-			const uint16_t cpuUsage = osGetCPUUsage();
-			fbInfoPanel.printf(4, 0, COLOR_WHITE, COLOR_BLACK, "CPU: %02u%%", cpuUsage);
-
-			xTime2 = xTaskGetTickCount();
-			xExecutionTime = xTime2 - xTime1;
-			fbInfoPanel.printf(4, 12, COLOR_WHITE, COLOR_BLACK, "FPS: %03u", xExecutionTime);
-
-		
-			/* Ask for LTDC reload within next vertical blanking*/
-			//ReloadFlag = 0;
-			//HAL_LTDC_Reload(&LtdcHandle, LTDC_SRCR_VBR);
-      
-			//while (ReloadFlag == 0)
-			//{
-			  /* wait till reload takes effect (in the next vertical blanking period) */
-			//}
-		}
-		
-		osDelay(50);
-	}
-}
-
-
-#define buf_size 8
-
 static void SDRAM_Thread(void const *argument)
 {
 	(void) argument;  
@@ -177,6 +133,53 @@ static void GridEye_Thread(void const *argument)
 		irSensor.readImage();
 		isDataReady = true;
 		osDelay(100);
+	}
+}
+
+static void LTDC_Thread(void const *argument)
+{
+	(void) argument;
+
+	/* reconfigure the layer1 position  without Reloading*/
+	HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 0, 0);
+	/* reconfigure the layer2 position  without Reloading*/
+	HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 240, 1);
+
+	TickType_t xTime1, xTime2, xExecutionTime;
+
+	for (;;)
+	{
+		if (isDataReady)
+		{
+			//xTime1 = xTaskGetTickCount();
+			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION);
+			isDataReady = false;
+
+			const uint16_t cpuUsage = osGetCPUUsage();
+			fbInfoPanel.printf(4, 0, COLOR_WHITE, COLOR_BLACK, "CPU: %02u%%", cpuUsage);
+
+			const uint8_t maxTemp = irSensor.getMaxTemp();
+			fbInfoPanel.printf(4, 225, COLOR_RED, COLOR_BLACK, "MAX:%03u\x81", maxTemp);
+
+			const uint8_t minTemp = irSensor.getMinTemp();
+			fbInfoPanel.printf(4, 15, COLOR_GREEN, COLOR_BLACK, "MIN:%03u\x81", minTemp);
+
+			/*xTime2 = xTaskGetTickCount();
+			xExecutionTime = xTime2 - xTime1;
+			fbInfoPanel.printf(4, 12, COLOR_WHITE, COLOR_BLACK, "FPS: %03u", xExecutionTime);*/
+
+		
+			/* Ask for LTDC reload within next vertical blanking*/
+			//ReloadFlag = 0;
+			//HAL_LTDC_Reload(&LtdcHandle, LTDC_SRCR_VBR);
+      
+			//while (ReloadFlag == 0)
+			//{
+			  /* wait till reload takes effect (in the next vertical blanking period) */
+			//}
+		}
+		
+		osDelay(50);
 	}
 }
 

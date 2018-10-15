@@ -54,6 +54,15 @@ float* IRSensor::getTempMap()
 	return this->dots;
 }
 
+float IRSensor::getMaxTemp()
+{
+	return this->maxTemp;
+}
+
+float IRSensor::getMinTemp()
+{
+	return this->minTemp;
+}
 
 void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY)
 {
