@@ -1,17 +1,21 @@
+
 #include "cmsis_os.h"
 #include "main.h"
-#include "st_logo1.h"
-#include <thermal.h>
 #include <ili9341.h>
 #include <stm32f429i_discovery.h>
+#include <framebuffer.h>
+#include <thermal.h>
 
-osThreadId LEDThread1Handle, LEDThread2Handle, LTDCThreadHandle, SDRAMThreadHandle, GridEyeThreadHandle, DrawThreadHandle;
+osThreadId LEDThread1Handle, LEDThread2Handle, LTDCThreadHandle, SDRAMThreadHandle, GridEyeThreadHandle;
 
 LTDC_HandleTypeDef LtdcHandle;
 
 __IO uint32_t ReloadFlag = 0;
 
+Framebuffer fbRight;
 IRSensor irSensor;
+
+__IO bool isDataReady;
 
 uint16_t pixels[THERMAL_RESOLUTION * THERMAL_RESOLUTION];
 
@@ -21,7 +25,6 @@ static void LED_Thread2(void const *argument);
 static void LTDC_Thread(void const *argument);
 static void SDRAM_Thread(void const *argument);
 static void GridEye_Thread(void const *argument);
-static void Draw_Thread(void const *argument);
 
 static void SystemClock_Config();
 static void LCD_Config();
@@ -49,11 +52,19 @@ int main()
 	/* Configure the system clock to 168 MHz */
 	SystemClock_Config();
 
-		  /* Init I2C3 */
+	/* Init I2C3 */
 	IOE_Init();
 
 	BSP_SDRAM_Init();
 	LCD_Config();
+
+	fbRight.init(FRAMEBUFFER_ADDR2, 80, 240, 0xffff, 0x0000);
+	fbRight.clear(COLOR_BLACK);
+	fbRight.setOrientation(LANDSCAPE);
+
+	fbRight.pixelDraw(0, 0, COLOR_WHITE);
+	fbRight.pixelDraw(50, 5, COLOR_RED);
+	fbRight.putString("TEST", 0, 0, COLOR_BLUE, COLOR_BLACK);
 
 	irSensor.init();	
   
@@ -62,14 +73,12 @@ int main()
 	osThreadDef(LDTC, LTDC_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(SDRAM, SDRAM_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(GRID_EYE, GridEye_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-	osThreadDef(DRAW, Draw_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
   
 	LEDThread1Handle = osThreadCreate(osThread(LED3), NULL);
 	LEDThread2Handle = osThreadCreate(osThread(LED4), NULL);
 	LTDCThreadHandle = osThreadCreate(osThread(LDTC), NULL);
 	SDRAMThreadHandle = osThreadCreate(osThread(SDRAM), NULL);
 	GridEyeThreadHandle = osThreadCreate(osThread(GRID_EYE), NULL);
-	DrawThreadHandle = osThreadCreate(osThread(DRAW), NULL);
   
 	/* Start scheduler */
 	osKernelStart();
@@ -157,23 +166,59 @@ static void LED_Thread2(void const *argument)
 static void LTDC_Thread(void const *argument)
 {
 	(void) argument;
+
+	const uint16_t batchSize = 24000;
+	uint8_t batches = sizeof(pixels) / batchSize;
+	if (batches * batchSize < sizeof(pixels))
+	{
+		batches++;	
+	}
+
+	/* reconfigure the layer1 position  without Reloading*/
+	HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 0, 0);
+	/* reconfigure the layer2 position  without Reloading*/
+	HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 240, 1);
+
+	uint32_t ticks, prevTicks;
   
+	prevTicks = osKernelSysTick();
+
 	for (;;)
 	{
-		/* reconfigure the layer1 position  without Reloading*/
-		HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 0, 0);
-		/* reconfigure the layer2 position  without Reloading*/
-		HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 240, 1);
-		/* Ask for LTDC reload within next vertical blanking*/
-		ReloadFlag = 0;
-		HAL_LTDC_Reload(&LtdcHandle, LTDC_SRCR_VBR);
-      
-		while (ReloadFlag == 0)
+		if (isDataReady)
 		{
-		  /* wait till reload takes effect (in the next vertical blanking period) */
-		}
+			
+			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, pixels);
 
-		osDelay(5000);
+			uint32_t cnt = 0;
+			for (uint8_t i = 0; i < batches; i++)
+			{
+				uint32_t size = batchSize;
+				if (i == (batches - 1))
+				{
+					size = sizeof(pixels) - ((batches - 1) * batchSize);
+				}
+				BSP_SDRAM_WriteData(FRAMEBUFFER_ADDR + cnt, (uint32_t *)&pixels + (cnt / 4), size);
+				cnt += batchSize;	
+			}
+
+			ticks = osKernelSysTick();
+			uint32_t diff = ticks - prevTicks;
+			prevTicks = ticks;
+		
+			/* Ask for LTDC reload within next vertical blanking*/
+			//ReloadFlag = 0;
+			//HAL_LTDC_Reload(&LtdcHandle, LTDC_SRCR_VBR);
+      
+			//while (ReloadFlag == 0)
+			{
+			  /* wait till reload takes effect (in the next vertical blanking period) */
+			}
+
+			isDataReady = false;
+		}
+		
+		osDelay(50);
 	}
 }
 
@@ -187,8 +232,8 @@ static void SDRAM_Thread(void const *argument)
 	{
 		uint32_t testData[buf_size] = { 1, 2, 3, 4, 5, 6, 7, 8 };
 		uint32_t testData2[buf_size];
-		BSP_SDRAM_WriteData(CUSTOM_DATA_ADDR, testData, buf_size);
-		BSP_SDRAM_ReadData(CUSTOM_DATA_ADDR, testData2, buf_size);
+		//BSP_SDRAM_WriteData(CUSTOM_DATA_ADDR, testData, buf_size);
+		//BSP_SDRAM_ReadData(CUSTOM_DATA_ADDR, testData2, buf_size);
 		osDelay(1000);
 	}
 }
@@ -199,37 +244,7 @@ static void GridEye_Thread(void const *argument)
 	for (;;)
 	{
 		irSensor.readImage();
-		osDelay(100);
-	}
-}
-
-static void Draw_Thread(void const *argument)
-{
-	(void) argument;
-
-	const uint16_t batchSize = 20000;
-	uint8_t batches = sizeof(pixels) / batchSize;
-	if (batches * batchSize < sizeof(pixels))
-	{
-		batches++;	
-	}
-	
-	for (;;)
-	{
-		irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, pixels);
-
-		uint32_t cnt = 0;
-		for (uint8_t i = 0; i < batches; i++)
-		{
-			uint32_t size = batchSize;
-			if (i == (batches - 1))
-			{
-				size = sizeof(pixels) - ((batches - 1) * batchSize);
-			}
-			BSP_SDRAM_WriteData(FRAMEBUFFER_ADDR + cnt, (uint32_t *)&pixels + (cnt/4), size);
-			cnt += batchSize;	
-		}
-
+		isDataReady = true;
 		osDelay(100);
 	}
 }
@@ -392,16 +407,16 @@ static void LCD_Config()
   
 	/* Windowing configuration */ 
 	pLayerCfg.WindowX0 = 0;
-	pLayerCfg.WindowX1 = 240;
+	pLayerCfg.WindowX1 = THERMAL_RESOLUTION;//240;
 	pLayerCfg.WindowY0 = 0;
-	pLayerCfg.WindowY1 = 240;
+	pLayerCfg.WindowY1 = THERMAL_RESOLUTION;//240;
   
 	/* Pixel Format configuration*/ 
 	pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
   
 	/* Start Address configuration : frame buffer is located at FLASH memory */
-	//pLayerCfg.FBStartAdress = (uint32_t)&ST_LOGO_1;
-	pLayerCfg.FBStartAdress = FRAMEBUFFER_ADDR; 
+	pLayerCfg.FBStartAdress = FRAMEBUFFER_ADDR;
+	//pLayerCfg.FBStartAdress = (uint32_t)&pixels; 
   
 	/* Alpha constant (255 totally opaque) */
 	pLayerCfg.Alpha = 255;
@@ -432,10 +447,10 @@ static void LCD_Config()
 	pLayerCfg1.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
   
 	/* Start Address configuration : frame buffer is located at FLASH memory */
-	//pLayerCfg1.FBStartAdress = (uint32_t)&ST_LOGO_1;
+	pLayerCfg1.FBStartAdress = FRAMEBUFFER_ADDR2;
   
 	/* Alpha constant (255 totally opaque) */
-	pLayerCfg1.Alpha = 200;
+	pLayerCfg1.Alpha = 255;
   
 	/* Default Color configuration (configure A,R,G,B component values) */
 	pLayerCfg1.Alpha0 = 0;

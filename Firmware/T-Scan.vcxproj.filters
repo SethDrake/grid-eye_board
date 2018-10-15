@@ -490,10 +490,13 @@
     <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_lcd.h">
       <Filter>Header files\drivers</Filter>
     </ClInclude>
-    <ClInclude Include="Inc\st_logo1.h">
+    <ClInclude Include="Inc\thermal.h">
       <Filter>Header files\Inc</Filter>
     </ClInclude>
-    <ClInclude Include="Inc\thermal.h">
+    <ClInclude Include="Inc\fonts.h">
+      <Filter>Header files\Inc</Filter>
+    </ClInclude>
+    <ClInclude Include="framebuffer.h">
       <Filter>Header files\Inc</Filter>
     </ClInclude>
   </ItemGroup>
@@ -824,6 +827,9 @@
     </ClCompile>
     <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_utils.c">
       <Filter>Source files\Device-specific files\HAL</Filter>
+    </ClCompile>
+    <ClCompile Include="framebuffer.cpp">
+      <Filter>Source files\Src</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
