@@ -12,6 +12,7 @@ LTDC_HandleTypeDef LtdcHandle;
 
 __IO uint32_t ReloadFlag = 0;
 
+DMA2D_HandleTypeDef dma2dHandle;
 Framebuffer fbInfoPanel;
 IRSensor irSensor;
 
@@ -28,6 +29,7 @@ static void GridEye_Thread(void const *argument);
 
 static void SystemClock_Config();
 static void LCD_Config();
+static void DMA2D_Config();
 
 /* Private functions ---------------------------------------------------------*/
 
@@ -55,14 +57,16 @@ int main()
 	/* Init I2C3 */
 	IOE_Init();
 
+	DMA2D_Config();
+
 	BSP_SDRAM_Init();
 	LCD_Config();
 
-	fbInfoPanel.init(FRAMEBUFFER_ADDR2, 80, 240, 0xffff, 0x0000);
-	fbInfoPanel.clear(COLOR_BLACK);
+	fbInfoPanel.init(&dma2dHandle, 2, FRAMEBUFFER_ADDR2, 80, 240, 0xffff, 0x0000);
+	fbInfoPanel.clear(0x00000000);
 	fbInfoPanel.setOrientation(LANDSCAPE);
 
-	irSensor.init(FRAMEBUFFER_ADDR);	
+	irSensor.init(&dma2dHandle, 1, FRAMEBUFFER_ADDR);	
   
 	osThreadDef(LED3, LED_Thread1, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(LED4, LED_Thread2, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
@@ -152,7 +156,7 @@ static void LTDC_Thread(void const *argument)
 		if (isDataReady)
 		{
 			//xTime1 = xTaskGetTickCount();
-			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, 0);
+			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, 1);
 			isDataReady = false;
 
 			const uint16_t cpuUsage = osGetCPUUsage();
@@ -188,16 +192,16 @@ static void LTDC_Thread(void const *argument)
   * @brief  System Clock Configuration
   *         The system Clock is configured as follow : 
   *            System Clock source            = PLL (HSE)
-  *            SYSCLK(Hz)                     = 168000000
-  *            HCLK(Hz)                       = 168000000
+  *            SYSCLK(Hz)                     = 240000000
+  *            HCLK(Hz)                       = 240000000
   *            AHB Prescaler                  = 1
   *            APB1 Prescaler                 = 4
   *            APB2 Prescaler                 = 2
   *            HSE Frequency(Hz)              = 8000000
-  *            PLL_M                          = 8
-  *            PLL_N                          = 336
+  *            PLL_M                          = 4
+  *            PLL_N                          = 240
   *            PLL_P                          = 2
-  *            PLL_Q                          = 7
+  *            PLL_Q                          = 10
   *            VDD(V)                         = 3.3
   *            Main regulator output voltage  = Scale1 mode
   *            Flash Latency(WS)              = 5
@@ -222,10 +226,10 @@ static void SystemClock_Config()
 	RCC_OscInitStruct.HSEState = RCC_HSE_ON;
 	RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
 	RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-	RCC_OscInitStruct.PLL.PLLM = 8;
-	RCC_OscInitStruct.PLL.PLLN = 336;
+	RCC_OscInitStruct.PLL.PLLM = 4;
+	RCC_OscInitStruct.PLL.PLLN = 240;
 	RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
-	RCC_OscInitStruct.PLL.PLLQ = 7;
+	RCC_OscInitStruct.PLL.PLLQ = 10;
 	HAL_RCC_OscConfig(&RCC_OscInitStruct);
  
 	/* Activate the Over-Drive mode */
@@ -242,14 +246,14 @@ static void SystemClock_Config()
 
 	/*##-2- LTDC Clock Configuration ###########################################*/  
 	/* LCD clock configuration */
-	/* PLLSAI_VCO Input = HSE_VALUE/PLL_M = 1 MHz */
-	/* PLLSAI_VCO Output = PLLSAI_VCO Input * PLLSAIN = 192 MHz */
-	/* PLLLCDCLK = PLLSAI_VCO Output/PLLSAIR = 192/4 = 48 MHz */
-	/* LTDC clock frequency = PLLLCDCLK / RCC_PLLSAIDIVR_8 = 48/4 = 12 MHz */
+	/* PLLSAI_VCO Input = HSE_VALUE/PLL_M = 2 MHz */
+	/* PLLSAI_VCO Output = PLLSAI_VCO Input * PLLSAIN = 384 MHz */
+	/* PLLLCDCLK = PLLSAI_VCO Output/PLLSAIR = 384/4 = 96 MHz */
+	/* LTDC clock frequency = PLLLCDCLK / RCC_PLLSAIDIVR_8 = 96/8 = 12 MHz */
 	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_LTDC;
 	PeriphClkInitStruct.PLLSAI.PLLSAIN = 192;
 	PeriphClkInitStruct.PLLSAI.PLLSAIR = 4;
-	PeriphClkInitStruct.PLLSAIDivR = RCC_PLLSAIDIVR_4;
+	PeriphClkInitStruct.PLLSAIDivR = RCC_PLLSAIDIVR_8;
 	HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct); 	
 }
 
@@ -420,6 +424,14 @@ static void LCD_Config()
 	  /* Initialization Error */
 		Error_Handler(12); 
 	}  
+}
+
+
+void DMA2D_Config()
+{
+	__HAL_RCC_DMA2D_CLK_ENABLE(); 
+	HAL_NVIC_SetPriority(DMA2D_IRQn, 0, 0);
+	HAL_NVIC_EnableIRQ(DMA2D_IRQn); 
 }
 
 void Error_Handler(const uint8_t source)

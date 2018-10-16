@@ -12,7 +12,7 @@ class IRSensor {
 public:
 	IRSensor();
 	~IRSensor();
-	void init(const uint32_t fb_addr);
+	void init(DMA2D_HandleTypeDef* dma2dHandler, uint8_t layer, const uint32_t fb_addr);
 	float readThermistor();
 	void readImage();
 	float* getTempMap();
@@ -26,6 +26,8 @@ protected:
 	uint16_t temperatureToRGB565(float temperature, float minTemp, float maxTemp);
 	float interpolate(float t1, float t2, uint8_t step, uint8_t steps);
 private:
+	DMA2D_HandleTypeDef* dma2dHandler;
+	uint8_t layer;
 	uint32_t fb_addr;
 	float dots[64];
 	float minTemp;

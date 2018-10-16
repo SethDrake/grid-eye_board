@@ -14,6 +14,8 @@ Framebuffer::Framebuffer()
 	this->bg_color = 0x0000;
 	this->font = Consolas8x14;
 	this->orientation = PORTRAIT;
+	this->dma2dHandler = NULL;
+	this->layer = 0;
 }
 
 Framebuffer::~Framebuffer()
@@ -26,11 +28,13 @@ Framebuffer::~Framebuffer()
 	this->fb_sizeY = 0;
 }
 
-void Framebuffer::init(const uint32_t fb_addr, const uint16_t fb_sizeX, const uint16_t fb_sizeY, const uint16_t color, const uint16_t bg_color)
+void Framebuffer::init(DMA2D_HandleTypeDef* dma2dHandler, uint8_t layer, const uint32_t fb_addr, const uint16_t fb_sizeX, const uint16_t fb_sizeY, const uint16_t color, const uint16_t bg_color)
 {
+	this->dma2dHandler = dma2dHandler;
 	this->fb_sizeX = fb_sizeX;
 	this->fb_sizeY = fb_sizeY;
 	this->fb_addr = fb_addr;
+	this->layer = layer;
 	this->setTextColor(color, bg_color);
 }
 
@@ -45,15 +49,28 @@ void Framebuffer::setOrientation(const FB_ORIENTATION orientation)
 	this->orientation = orientation;
 }
 
-void Framebuffer::clear(const uint16_t color)
+void Framebuffer::clear(const uint32_t color)
 {
-	volatile uint16_t *pSdramAddress = (uint16_t *)this->fb_addr;
+	(*this->dma2dHandler).Init.Mode         = DMA2D_R2M;
+	(*this->dma2dHandler).Init.ColorMode    = DMA2D_RGB565;
+	(*this->dma2dHandler).Init.OutputOffset = 0;
+	(*this->dma2dHandler).Instance = DMA2D;
+	
+	if (HAL_DMA2D_Init(this->dma2dHandler) == HAL_OK) 
+	{
+		if (HAL_DMA2D_ConfigLayer(this->dma2dHandler, layer) == HAL_OK) 
+		{
+			HAL_DMA2D_Start_IT(this->dma2dHandler, color, this->fb_addr, this->fb_sizeX, this->fb_sizeY);
+		}
+	} 
+
+	/*volatile uint16_t *pSdramAddress = (uint16_t *)this->fb_addr;
 	uint32_t buf_size = (this->fb_sizeX * this->fb_sizeY); 
 	for (; buf_size != 0U; buf_size--)
 	{
 		*(volatile uint16_t *)pSdramAddress = color;
 		pSdramAddress++;
-	}
+	}*/
 }
 
 uint16_t Framebuffer::getFBSizeX()

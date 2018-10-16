@@ -45,6 +45,7 @@ void DebugMon_Handler(void);
 void PendSV_Handler(void);
 void SysTick_Handler(void);
 void LTDC_IRQHandler(void);
+void DMA2D_IRQHandler(void);
 
 extern void hard_fault_handler(unsigned int * hardfault_args);
 

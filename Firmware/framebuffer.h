@@ -3,6 +3,7 @@
 #define __FRAMEBUFFER_H
 
 #include <stdint.h>
+#include "stm32f4xx_hal.h"
 
 #define COLOR_RED		  0xf800
 #define COLOR_PURPLE	  0xf310
@@ -27,10 +28,10 @@ class Framebuffer {
 public:
 	Framebuffer();
 	~Framebuffer();
-	void init(const uint32_t fb_addr, const uint16_t fb_sizeX, const uint16_t fb_sizeY, const uint16_t color, const uint16_t bg_color);
+	void init(DMA2D_HandleTypeDef* dma2dHandler, uint8_t layer, const uint32_t fb_addr, const uint16_t fb_sizeX, const uint16_t fb_sizeY, const uint16_t color, const uint16_t bg_color);
 	void setTextColor(const uint16_t color, const uint16_t bg_color);
 	void setOrientation(const FB_ORIENTATION orientation);
-	void clear(const uint16_t color);
+	void clear(const uint32_t color);
 	uint16_t getFBSizeX();
 	uint16_t getFBSizeY();
 	void printf(const uint16_t x, const uint16_t y, const uint16_t charColor, const uint16_t bkgColor, const char *format, ...);
@@ -40,6 +41,7 @@ public:
 protected:
 	void putChar(const uint16_t x, uint16_t y, const uint8_t chr, const uint16_t charColor, const uint16_t bkgColor);
 private:
+	DMA2D_HandleTypeDef* dma2dHandler;
 	uint16_t fb_sizeX;
 	uint16_t fb_sizeY;
 	uint32_t fb_addr;
@@ -47,6 +49,7 @@ private:
 	uint16_t bg_color;
 	const uint8_t *font;
 	FB_ORIENTATION orientation;
+	uint8_t layer;
 };
 
 #endif /* __THERMAL_H */

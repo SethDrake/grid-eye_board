@@ -142,6 +142,16 @@ void LTDC_IRQHandler(void)
 }
 
 /**
+  * @brief  This function handles DMA2D Handler.
+  * @param  None
+  * @retval None
+  */
+void DMA2D_IRQHandler(void)
+{
+	HAL_DMA2D_IRQHandler(&dma2dHandle);
+}
+
+/**
   * @brief  This function handles PPP interrupt request.
   * @param  None
   * @retval None

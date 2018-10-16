@@ -27,9 +27,10 @@ extern "C" {
 #define FRAMEBUFFER2_SIZE  240 * 80 * 2
 #define CUSTOM_DATA_ADDR  FRAMEBUFFER_ADDR2 + FRAMEBUFFER2_SIZE
 
-#define THERMAL_RESOLUTION 240
+#define THERMAL_RESOLUTION 120
 
-	extern void Error_Handler(const uint8_t source);
+extern void Error_Handler(const uint8_t source);
+extern DMA2D_HandleTypeDef dma2dHandle;
 
 #ifdef __cplusplus
 }
