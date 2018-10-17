@@ -81,6 +81,10 @@ float IRSensor::getMinTemp()
 	return this->minTemp;
 }
 
+uint8_t IRSensor::getHotDotIndex()
+{
+	return this->hotDotIndex;
+}
 
 void IRSensor::drawGradient(const uint32_t fb_addr, uint8_t startX, uint8_t startY, uint8_t stopX, uint8_t stopY)
 {
@@ -264,13 +268,14 @@ void IRSensor::findMinAndMaxTemp()
 	this->maxTemp = -100;
 	for (uint8_t i = 0; i < 64; i++)
 	{
-		if (this->dots[i] < this->minTemp)
+		if (dots[i] < minTemp)
 		{
-			this->minTemp = dots[i];	
+			minTemp = dots[i];	
 		}
-		if (this->dots[i] > this->maxTemp)
+		if (dots[i] > maxTemp)
 		{
-			this->maxTemp = dots[i];	
+			maxTemp = dots[i];
+			hotDotIndex = i;
 		}
 	}
 }

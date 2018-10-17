@@ -5,12 +5,14 @@
 #include <stm32f429i_discovery.h>
 #include <framebuffer.h>
 #include <thermal.h>
+#include <regex>
 
 osThreadId LEDThread1Handle, LEDThread2Handle, LTDCThreadHandle, SDRAMThreadHandle, GridEyeThreadHandle, ReadKeysTaskHandle; 
 
 LTDC_HandleTypeDef LtdcHandle;
 DMA2D_HandleTypeDef dma2dHandle;
 Framebuffer fbInfoPanel;
+Framebuffer fbMain;
 IRSensor irSensor;
 
 __IO uint32_t ReloadFlag = 0;
@@ -67,6 +69,9 @@ int main()
 	fbInfoPanel.init(&dma2dHandle, 2, FRAMEBUFFER_ADDR2, 80, 240, 0xffff, 0x0000);
 	fbInfoPanel.clear(0x00000000);
 	fbInfoPanel.setOrientation(LANDSCAPE);
+	
+	fbMain.init(&dma2dHandle, 1, FRAMEBUFFER_ADDR, THERMAL_RESOLUTION, THERMAL_RESOLUTION, 0xffff, 0x0000);
+	fbMain.setOrientation(LANDSCAPE);
 
 	irSensor.init(&dma2dHandle, 1, FRAMEBUFFER_ADDR, ALTERNATE_COLOR_SCHEME);	
   
@@ -154,6 +159,10 @@ static void LTDC_Thread(void const *argument)
 	HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 240, 1);
 
 	TickType_t xTime1, xTime2, xExecutionTime;
+	uint8_t minTemp = 0;
+	uint8_t maxTemp = 0;
+	uint8_t prevHotDot = irSensor.getHotDotIndex();
+	uint8_t hotDot = 0;
 
 	for (;;)
 	{
@@ -161,7 +170,15 @@ static void LTDC_Thread(void const *argument)
 		{
 			xTime1 = xTaskGetTickCount();
 			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, vis_mode);
-			irSensor.drawGradient(FRAMEBUFFER_ADDR2, 4, 50, 24, 225);
+			
+			hotDot = irSensor.getHotDotIndex();
+			prevHotDot = hotDot;
+			uint8_t x = hotDot / 8;
+			uint8_t y = hotDot % 8;
+			const uint16_t maxTempColor = irSensor.temperatureToRGB565(maxTemp, minTemp, maxTemp);
+			fbMain.printf(x * (THERMAL_RESOLUTION / 8), y * (THERMAL_RESOLUTION / 8), COLOR_WHITE, maxTempColor, "%u\x81", maxTemp);
+			
+			irSensor.drawGradient(FRAMEBUFFER_ADDR2, 4, 50, 19, 225);
 			isDataReady = false;
 			xTime2 = xTaskGetTickCount();
 			xExecutionTime = xTime2 - xTime1;
@@ -171,20 +188,20 @@ static void LTDC_Thread(void const *argument)
 			const uint16_t cpuUsage = osGetCPUUsage();
 			fbInfoPanel.printf(4, 0, COLOR_WHITE, COLOR_BLACK, "CPU: %02u%%", cpuUsage);
 
-			const uint8_t maxTemp = irSensor.getMaxTemp();
+			maxTemp = irSensor.getMaxTemp();
 			fbInfoPanel.printf(4, 225, COLOR_RED, COLOR_BLACK, "MAX:%03u\x81", maxTemp);
 
-			const uint8_t minTemp = irSensor.getMinTemp();
+			minTemp = irSensor.getMinTemp();
 			fbInfoPanel.printf(4, 38, COLOR_GREEN, COLOR_BLACK, "MIN:%03u\x81", minTemp);
 		
 			/* Ask for LTDC reload within next vertical blanking*/
-			ReloadFlag = 0;
-			HAL_LTDC_Reload(&LtdcHandle, LTDC_SRCR_VBR);
+			//ReloadFlag = 0;
+			//HAL_LTDC_Reload(&LtdcHandle, LTDC_SRCR_VBR);
       
-			while (ReloadFlag == 0)
-			{
+			//while (ReloadFlag == 0)
+			//{
 			  /* wait till reload takes effect (in the next vertical blanking period) */
-			}
+			//}
 		}
 		
 		osDelay(50);

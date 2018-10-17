@@ -168,7 +168,7 @@ void Framebuffer::putString(const char str[], uint16_t x, const uint16_t y, cons
 {
 	while (*str != 0) {
 		putChar(x, y, *str, charColor, bkgColor);
-		x += font[0]; //increment to font width
+		x += font[0]-1; //increment to font width
 		str++;
 	}
 }
