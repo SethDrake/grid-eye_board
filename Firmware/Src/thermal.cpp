@@ -1,4 +1,7 @@
 ﻿#include <thermal.h>
+#include <math.h>
+#include "FreeRTOS.h"
+#include "task.h"
 
 IRSensor::IRSensor()
 {
@@ -78,15 +81,17 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint
 
 	uint16_t colors[64];
 
-	for (uint8_t i = 0; i < 64; i++)
-	{
-		colors[i] = this->temperatureToRGB565(dots[i], minTemp - 2, maxTemp + 3);		
-	}
+	TickType_t xTime1, xTime2, xExecutionTime;
 
 	volatile uint16_t *pSdramAddress = (uint16_t *)this->fb_addr;
 
 	if (method == 0)
 	{
+		for (uint8_t i = 0; i < 64; i++)
+		{
+			colors[i] = this->temperatureToRGB565(dots[i], minTemp - 2, maxTemp + 3);		
+		}
+		
 		const uint8_t lrepeat = resX / 8;
 		const uint8_t rrepeat = resY / 8;
 		while (line < 8)
@@ -109,34 +114,113 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint
 	}
 	else if (method == 1)
 	{
-		const uint8_t lrepeat = resX / 8;
-		const uint8_t rrepeat = resY / 8;
-		while (line < 8)
+		float tmp, u, t, d1, d2, d3, d4;
+		uint16_t p1, p2, p3, p4;
+		
+		for (uint8_t i = 0; i < 64; i++)
 		{
-			for (uint8_t t = 0; t < lrepeat; t++) //repeat
-			{
-				while (row < 8)
-				{
-					temp = dots[line * 8 + row];
-//					if (line < 7)
-//					{
-//						temp = interpolate(temp, dots[(line + 1) * 8 + row], t, lrepeat);													
-//					}
-					for (uint8_t k = 0; k < rrepeat; k++) //repeat
-					{
-						if (row < 7)
-						{
-							temp = interpolate(temp, dots[line * 8 + row + 1], k, rrepeat);													
-						}
-						*(volatile uint16_t *)pSdramAddress = this->temperatureToRGB565(temp, minTemp - 2, maxTemp + 3);
-						pSdramAddress++;	
-					}
-					row++;
-				}
-				row = 0;
+			colors[i] = this->temperatureToRGB565(dots[i], minTemp - 2, maxTemp + 3);		
+		}
+		
+		for (uint16_t j = 0; j < resY; j++) {
+			tmp = (float)(j) / (float)(resY - 1) * (8 - 1);
+			int16_t h = (int16_t) floor(tmp);
+			if (h < 0) {
+				h = 0;
 			}
-			line++;				
-		}		
+			else {
+				if (h >= 8 - 1) {
+					h = 8 - 2;
+				}
+			}
+			u = tmp - h;
+
+			for (uint16_t i = 0; i < resX; i++) {
+
+				tmp = (float)(i) / (float)(resX - 1) * (8 - 1);
+				int16_t w = (int16_t) floor(tmp);
+				if (w < 0) {
+					w = 0;
+				}
+				else {
+					if (w >= 8 - 1) {
+						w = 8 - 2;
+					}
+				}
+				t = tmp - w;
+
+				d1 = (1 - t) * (1 - u);
+				d2 = t * (1 - u);
+				d3 = t * u;
+				d4 = (1 - t) * u;
+
+							/* Окрестные пиксели: colors[i][j] */
+				p1 = colors[h*8+w];
+				p2 = colors[h*8 + w + 1];
+				p3 = colors[(h + 1)*8 + w + 1];
+				p4 = colors[(h + 1)*8 + w];
+
+							/* Компоненты */
+				uint8_t blue = (uint8_t)(p1 & 0x001f)*d1 + (uint8_t)(p2 & 0x001f)*d2 + (uint8_t)(p3 & 0x001f)*d3 + (uint8_t)(p4 & 0x001f)*d4;
+				uint8_t green = (uint8_t)((p1 >> 5) & 0x003f) * d1 + (uint8_t)((p2 >> 5) & 0x003f) * d2 + (uint8_t)((p3 >> 5) & 0x003f) * d3 + (uint8_t)((p4 >> 5) & 0x003f) * d4;
+				uint8_t red = (uint8_t)(p1 >> 11) * d1 + (uint8_t)(p2 >> 11) * d2 + (uint8_t)(p3 >> 11) * d3 + (uint8_t)(p4 >> 11) * d4;
+
+							/* Новый пиксел из RGB565  */
+				pSdramAddress = (uint16_t *)(this->fb_addr + (j * resX + i) * 2);
+				*(volatile uint16_t *)pSdramAddress = ((u_int16_t) red << 11) | ((u_int16_t) green << 5) | (blue);
+			}
+		}
+	}
+	else if (method == 2)
+	{
+		float tmp, u, t, d1, d2, d3, d4;
+		float p1, p2, p3, p4;
+		
+		for (uint16_t j = 0; j < resY; j++) {
+			tmp = (float)(j) / (float)(resY - 1) * (8 - 1);
+			int16_t h = (int16_t) floor(tmp);
+			if (h < 0) {
+				h = 0;
+			}
+			else {
+				if (h >= 8 - 1) {
+					h = 8 - 2;
+				}
+			}
+			u = tmp - h;
+
+			for (uint16_t i = 0; i < resX; i++) {
+
+				tmp = (float)(i) / (float)(resX - 1) * (8 - 1);
+				int16_t w = (int16_t) floor(tmp);
+				if (w < 0) {
+					w = 0;
+				}
+				else {
+					if (w >= 8 - 1) {
+						w = 8 - 2;
+					}
+				}
+				t = tmp - w;
+
+				d1 = (1 - t) * (1 - u);
+				d2 = t * (1 - u);
+				d3 = t * u;
+				d4 = (1 - t) * u;
+
+							/* Окрестные пиксели: dots[i][j] */
+				p1 = dots[h*8+w];
+				p2 = dots[h * 8 + w + 1];
+				p3 = dots[(h + 1) * 8 + w + 1];
+				p4 = dots[(h + 1) * 8 + w];
+
+				temp = p1*d1 + p2*d2 + p3*d3 + p4*d4;
+
+							/* Новый пиксел из RGB565  */
+				pSdramAddress = (uint16_t *)(this->fb_addr + (j * resX + i) * 2);
+				*(volatile uint16_t *)pSdramAddress = this->temperatureToRGB565(temp, minTemp - 2, maxTemp + 3);
+			}
+		}
 	}
 }
 

@@ -6,16 +6,15 @@
 #include <framebuffer.h>
 #include <thermal.h>
 
-osThreadId LEDThread1Handle, LEDThread2Handle, LTDCThreadHandle, SDRAMThreadHandle, GridEyeThreadHandle;
+osThreadId LEDThread1Handle, LEDThread2Handle, LTDCThreadHandle, SDRAMThreadHandle, GridEyeThreadHandle, ReadKeysTaskHandle; 
 
 LTDC_HandleTypeDef LtdcHandle;
-
-__IO uint32_t ReloadFlag = 0;
-
 DMA2D_HandleTypeDef dma2dHandle;
 Framebuffer fbInfoPanel;
 IRSensor irSensor;
 
+__IO uint32_t ReloadFlag = 0;
+__IO uint8_t vis_mode = 0;
 __IO bool isDataReady;
 
 //uint16_t pixels[THERMAL_RESOLUTION * THERMAL_RESOLUTION];
@@ -26,6 +25,7 @@ static void LED_Thread2(void const *argument);
 static void LTDC_Thread(void const *argument);
 static void SDRAM_Thread(void const *argument);
 static void GridEye_Thread(void const *argument);
+static void ReadKeys_Thread(void const *argument);
 
 static void SystemClock_Config();
 static void LCD_Config();
@@ -50,6 +50,8 @@ int main()
 	/* Configure LED3 and LED4 */
 	BSP_LED_Init(LED3);
 	BSP_LED_Init(LED4);
+
+	BSP_PB_Init(BUTTON_KEY, BUTTON_MODE_GPIO);
   
 	/* Configure the system clock to 168 MHz */
 	SystemClock_Config();
@@ -70,15 +72,17 @@ int main()
   
 	osThreadDef(LED3, LED_Thread1, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(LED4, LED_Thread2, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-	osThreadDef(LDTC, LTDC_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+	osThreadDef(LDTC, LTDC_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE + 128);
 	osThreadDef(SDRAM, SDRAM_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(GRID_EYE, GridEye_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+	osThreadDef(READ_KEYS, ReadKeys_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
   
 	LEDThread1Handle = osThreadCreate(osThread(LED3), NULL);
 	LEDThread2Handle = osThreadCreate(osThread(LED4), NULL);
 	LTDCThreadHandle = osThreadCreate(osThread(LDTC), NULL);
 	SDRAMThreadHandle = osThreadCreate(osThread(SDRAM), NULL);
 	GridEyeThreadHandle = osThreadCreate(osThread(GRID_EYE), NULL);
+	ReadKeysTaskHandle = osThreadCreate(osThread(READ_KEYS), NULL);
   
 	/* Start scheduler */
 	osKernelStart();
@@ -155,9 +159,13 @@ static void LTDC_Thread(void const *argument)
 	{
 		if (isDataReady)
 		{
-			//xTime1 = xTaskGetTickCount();
-			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, 1);
+			xTime1 = xTaskGetTickCount();
+			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, vis_mode);
 			isDataReady = false;
+			xTime2 = xTaskGetTickCount();
+			xExecutionTime = xTime2 - xTime1;
+			fbInfoPanel.printf(4, 12, COLOR_WHITE, COLOR_BLACK, "T: %04u", xExecutionTime);
+			fbInfoPanel.printf(4, 25, COLOR_WHITE, COLOR_BLACK, "VM: %01u", vis_mode);
 
 			const uint16_t cpuUsage = osGetCPUUsage();
 			fbInfoPanel.printf(4, 0, COLOR_WHITE, COLOR_BLACK, "CPU: %02u%%", cpuUsage);
@@ -166,12 +174,7 @@ static void LTDC_Thread(void const *argument)
 			fbInfoPanel.printf(4, 225, COLOR_RED, COLOR_BLACK, "MAX:%03u\x81", maxTemp);
 
 			const uint8_t minTemp = irSensor.getMinTemp();
-			fbInfoPanel.printf(4, 15, COLOR_GREEN, COLOR_BLACK, "MIN:%03u\x81", minTemp);
-
-			/*xTime2 = xTaskGetTickCount();
-			xExecutionTime = xTime2 - xTime1;
-			fbInfoPanel.printf(4, 12, COLOR_WHITE, COLOR_BLACK, "FPS: %03u", xExecutionTime);*/
-
+			fbInfoPanel.printf(4, 38, COLOR_GREEN, COLOR_BLACK, "MIN:%03u\x81", minTemp);
 		
 			/* Ask for LTDC reload within next vertical blanking*/
 			//ReloadFlag = 0;
@@ -187,6 +190,34 @@ static void LTDC_Thread(void const *argument)
 	}
 }
 
+static void ReadKeys_Thread(void const *argument)
+{
+	(void) argument;
+	bool isPressed = false;
+	for (;;)
+	{
+		const bool isKeyPressed = BSP_PB_GetState(BUTTON_KEY);
+		if (isKeyPressed)
+		{
+			if (isPressed)
+			{
+				osDelay(350);
+				continue;
+			}
+			vis_mode++;
+			if (vis_mode > 2)
+			{
+				vis_mode = 0;
+			}
+			isPressed = true;
+		}
+		else
+		{
+			isPressed = false;
+		}
+		osDelay(75);
+	}
+}
 
 /**
   * @brief  System Clock Configuration
