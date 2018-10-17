@@ -19,12 +19,13 @@ public:
 	float* getTempMap();
 	float getMaxTemp();
 	float getMinTemp();
+	uint16_t temperatureToRGB565(float temperature, float minTemp, float maxTemp);
 	void visualizeImage(uint8_t resX, uint8_t resY, const uint8_t method);
+	void drawGradient(const uint32_t fb_addr, uint8_t startX, uint8_t startY, uint8_t stopX, uint8_t stopY);
 protected:
 	void findMinAndMaxTemp();
 	uint16_t rgb2color(uint8_t R, uint8_t G, uint8_t B);
 	uint8_t calculateRGB(uint8_t rgb1, uint8_t rgb2, float t1, float step, float t);
-	uint16_t temperatureToRGB565(float temperature, float minTemp, float maxTemp);
 private:
 	DMA2D_HandleTypeDef* dma2dHandler;
 	uint8_t layer;
@@ -33,7 +34,7 @@ private:
 	float dots[64];
 	float minTemp;
 	float maxTemp;
-	float rawHLtoTemp(uint8_t rawL, uint8_t rawH, float coeff);	
+	float rawHLtoTemp(uint8_t rawL, uint8_t rawH, float coeff);
 };
 
 

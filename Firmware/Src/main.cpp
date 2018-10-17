@@ -161,6 +161,7 @@ static void LTDC_Thread(void const *argument)
 		{
 			xTime1 = xTaskGetTickCount();
 			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, vis_mode);
+			irSensor.drawGradient(FRAMEBUFFER_ADDR2, 4, 50, 24, 225);
 			isDataReady = false;
 			xTime2 = xTaskGetTickCount();
 			xExecutionTime = xTime2 - xTime1;

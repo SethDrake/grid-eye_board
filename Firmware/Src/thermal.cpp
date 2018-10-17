@@ -2,6 +2,7 @@
 #include <math.h>
 #include "FreeRTOS.h"
 #include "task.h"
+#include "framebuffer.h"
 
 IRSensor::IRSensor()
 {
@@ -78,6 +79,30 @@ float IRSensor::getMaxTemp()
 float IRSensor::getMinTemp()
 {
 	return this->minTemp;
+}
+
+
+void IRSensor::drawGradient(const uint32_t fb_addr, uint8_t startX, uint8_t startY, uint8_t stopX, uint8_t stopY)
+{
+	const uint8_t height = stopY - startY;
+	const uint8_t width = stopX - startX;
+	const float diff = (maxTemp - minTemp) / height;
+	uint16_t line[height];
+	for (uint8_t j = 0; j < height; j++)
+	{
+		const float temp = minTemp + (diff * j);
+		line[j] = temperatureToRGB565(temp, minTemp, maxTemp);	
+	}
+
+	for (uint8_t i = 0; i < width; i++)
+	{
+		volatile uint16_t *pSdramAddress = (uint16_t *)(fb_addr + (240 * (startX + i) + startY) * 2);
+		for (uint8_t j = 0; j < height; j++)
+		{
+			*(volatile uint16_t *)pSdramAddress = line[j];	
+			pSdramAddress++;
+		}
+	}
 }
 
 void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint8_t method)
