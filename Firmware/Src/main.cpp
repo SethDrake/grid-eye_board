@@ -68,7 +68,7 @@ int main()
 	fbInfoPanel.clear(0x00000000);
 	fbInfoPanel.setOrientation(LANDSCAPE);
 
-	irSensor.init(&dma2dHandle, 1, FRAMEBUFFER_ADDR);	
+	irSensor.init(&dma2dHandle, 1, FRAMEBUFFER_ADDR, ALTERNATE_COLOR_SCHEME);	
   
 	osThreadDef(LED3, LED_Thread1, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(LED4, LED_Thread2, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
@@ -177,13 +177,13 @@ static void LTDC_Thread(void const *argument)
 			fbInfoPanel.printf(4, 38, COLOR_GREEN, COLOR_BLACK, "MIN:%03u\x81", minTemp);
 		
 			/* Ask for LTDC reload within next vertical blanking*/
-			//ReloadFlag = 0;
-			//HAL_LTDC_Reload(&LtdcHandle, LTDC_SRCR_VBR);
+			ReloadFlag = 0;
+			HAL_LTDC_Reload(&LtdcHandle, LTDC_SRCR_VBR);
       
-			//while (ReloadFlag == 0)
-			//{
+			while (ReloadFlag == 0)
+			{
 			  /* wait till reload takes effect (in the next vertical blanking period) */
-			//}
+			}
 		}
 		
 		osDelay(50);
@@ -209,6 +209,7 @@ static void ReadKeys_Thread(void const *argument)
 			{
 				vis_mode = 0;
 			}
+
 			isPressed = true;
 		}
 		else

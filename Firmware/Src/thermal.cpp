@@ -27,7 +27,7 @@ float IRSensor::rawHLtoTemp(const uint8_t rawL, const uint8_t rawH, const float 
 	return temp;
 }
 
-void IRSensor::init(DMA2D_HandleTypeDef* dma2dHandler, uint8_t layer, const uint32_t fb_addr)
+void IRSensor::init(DMA2D_HandleTypeDef* dma2dHandler, uint8_t layer, const uint32_t fb_addr, const uint8_t* colorScheme)
 {
 	IOE_Write(GRID_EYE_ADDR, 0x00, 0x00); //set normal mode
 	IOE_Write(GRID_EYE_ADDR, 0x02, 0x00); //set 10 FPS mode
@@ -35,6 +35,13 @@ void IRSensor::init(DMA2D_HandleTypeDef* dma2dHandler, uint8_t layer, const uint
 	this->fb_addr = fb_addr;
 	this->dma2dHandler = dma2dHandler;
 	this->layer = layer;
+	this->setColorScheme(colorScheme);
+}
+
+
+void IRSensor::setColorScheme(const uint8_t* colorScheme)
+{
+	this->colorScheme = colorScheme;
 }
 
 float IRSensor::readThermistor()
@@ -78,6 +85,8 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint
 	uint8_t line = 0;
 	uint8_t row = 0;
 	float temp;
+	float minTempCorr = -1;
+	float maxTempCorr = +1;
 
 	uint16_t colors[64];
 
@@ -89,7 +98,7 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint
 	{
 		for (uint8_t i = 0; i < 64; i++)
 		{
-			colors[i] = this->temperatureToRGB565(dots[i], minTemp - 2, maxTemp + 3);		
+			colors[i] = this->temperatureToRGB565(dots[i], minTemp + minTempCorr, maxTemp + maxTempCorr);		
 		}
 		
 		const uint8_t lrepeat = resX / 8;
@@ -119,7 +128,7 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint
 		
 		for (uint8_t i = 0; i < 64; i++)
 		{
-			colors[i] = this->temperatureToRGB565(dots[i], minTemp - 2, maxTemp + 3);		
+			colors[i] = this->temperatureToRGB565(dots[i], minTemp + minTempCorr, maxTemp + maxTempCorr);		
 		}
 		
 		for (uint16_t j = 0; j < resY; j++) {
@@ -161,7 +170,7 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint
 				p4 = colors[(h + 1)*8 + w];
 
 							/* Компоненты */
-				uint8_t blue = (uint8_t)(p1 & 0x001f)*d1 + (uint8_t)(p2 & 0x001f)*d2 + (uint8_t)(p3 & 0x001f)*d3 + (uint8_t)(p4 & 0x001f)*d4;
+				uint8_t blue = ((uint8_t)(p1 & 0x001f)*d1 + (uint8_t)(p2 & 0x001f)*d2 + (uint8_t)(p3 & 0x001f)*d3 + (uint8_t)(p4 & 0x001f)*d4);
 				uint8_t green = (uint8_t)((p1 >> 5) & 0x003f) * d1 + (uint8_t)((p2 >> 5) & 0x003f) * d2 + (uint8_t)((p3 >> 5) & 0x003f) * d3 + (uint8_t)((p4 >> 5) & 0x003f) * d4;
 				uint8_t red = (uint8_t)(p1 >> 11) * d1 + (uint8_t)(p2 >> 11) * d2 + (uint8_t)(p3 >> 11) * d3 + (uint8_t)(p4 >> 11) * d4;
 
@@ -218,17 +227,10 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint
 
 							/* Новый пиксел из RGB565  */
 				pSdramAddress = (uint16_t *)(this->fb_addr + (j * resX + i) * 2);
-				*(volatile uint16_t *)pSdramAddress = this->temperatureToRGB565(temp, minTemp - 2, maxTemp + 3);
+				*(volatile uint16_t *)pSdramAddress = this->temperatureToRGB565(temp, minTemp + minTempCorr, maxTemp + maxTempCorr);
 			}
 		}
 	}
-}
-
-float IRSensor::interpolate(float t1, float t2, uint8_t step, uint8_t steps)
-{
-	float diff = t2 - t1;
-	float delta = diff / steps;
-	return t1 + (step * delta);
 }
 
 void IRSensor::findMinAndMaxTemp()
@@ -260,19 +262,19 @@ uint8_t IRSensor::calculateRGB(const uint8_t rgb1, const uint8_t rgb2, const flo
 uint16_t IRSensor::temperatureToRGB565(const float temperature, const float minTemp, const float maxTemp) {
 	uint16_t val;
 	if (temperature < minTemp) {
-		val = rgb2color(DEFAULT_COLOR_SCHEME[0][0], DEFAULT_COLOR_SCHEME[0][1], DEFAULT_COLOR_SCHEME[0][2]);
+		val = rgb2color(colorScheme[0], colorScheme[1], colorScheme[2]);
 	}
 	else if (temperature >= maxTemp) {
 		const short colorSchemeSize = sizeof(DEFAULT_COLOR_SCHEME);
-		val = rgb2color(DEFAULT_COLOR_SCHEME[colorSchemeSize - 1][0], DEFAULT_COLOR_SCHEME[colorSchemeSize - 1][1], DEFAULT_COLOR_SCHEME[colorSchemeSize - 1][2]);
+		val = rgb2color(colorScheme[(colorSchemeSize - 1) * 3 + 0], colorScheme[(colorSchemeSize - 1) * 3 + 1], colorScheme[(colorSchemeSize - 1) * 3 + 2]);
 	}
 	else {
 		const float step = (maxTemp - minTemp) / 10.0;
 		const uint8_t step1 = (uint8_t)((temperature - minTemp) / step);
 		const uint8_t step2 = step1 + 1;
-		const uint8_t red = calculateRGB(DEFAULT_COLOR_SCHEME[step1][0], DEFAULT_COLOR_SCHEME[step2][0], (minTemp + step1 * step), step, temperature);
-		const uint8_t green = calculateRGB(DEFAULT_COLOR_SCHEME[step1][1], DEFAULT_COLOR_SCHEME[step2][1], (minTemp + step1 * step), step, temperature);
-		const uint8_t blue = calculateRGB(DEFAULT_COLOR_SCHEME[step1][2], DEFAULT_COLOR_SCHEME[step2][2], (minTemp + step1 * step), step, temperature);
+		const uint8_t red = calculateRGB(colorScheme[step1 * 3 + 0], colorScheme[step2 * 3 + 0], (minTemp + step1 * step), step, temperature);
+		const uint8_t green = calculateRGB(colorScheme[step1 * 3 + 1], colorScheme[step2 * 3 + 1], (minTemp + step1 * step), step, temperature);
+		const uint8_t blue = calculateRGB(colorScheme[step1 * 3 + 2], colorScheme[step2 * 3 + 2], (minTemp + step1 * step), step, temperature);
 		val = rgb2color(red, green, blue);
 	}
 	return val;
