@@ -69,7 +69,7 @@ int main()
 	fbMainLayer.setOrientation(LANDSCAPE);
 	fbMainLayer.clear(0x00000000);
 
-	irSensor.init(&dma2dHandle, 1, FRAMEBUFFER_ADDR, 320, 240, ALTERNATE_COLOR_SCHEME);	
+	irSensor.init(&dma2dHandle, 1, FRAMEBUFFER_ADDR, 320, 240, ALTERNATE_COLOR_SCHEME);
   
 	osThreadDef(LED3, LED_Thread1, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(LED4, LED_Thread2, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
@@ -178,16 +178,16 @@ static void LTDC_Thread(void const *argument)
 				hotDotX = hotDot / 8;
 				hotDotY = hotDot % 8;
 				
-				fbMainLayer.printf(244, 25, COLOR_WHITE, COLOR_BLACK, "VM: %01u", vis_mode);
+				fbMainLayer.printf(244, 25, COLOR_WHITE, COLOR_BLACK, "VM: %1u", vis_mode);
 
 				const uint16_t cpuUsage = osGetCPUUsage();
-				fbMainLayer.printf(244, 0, COLOR_WHITE, COLOR_BLACK, "CPU: %02u%%", cpuUsage);
+				fbMainLayer.printf(244, 0, COLOR_WHITE, COLOR_BLACK, "CPU: %2u%%", cpuUsage);
 
 				maxTemp = irSensor.getMaxTemp();
-				fbMainLayer.printf(244, 225, COLOR_RED, COLOR_BLACK, "MAX:%03u\x81", maxTemp);
+				fbMainLayer.printf(244, 225, COLOR_RED, COLOR_BLACK, "MAX:%3u\x81", maxTemp);
 
 				const uint8_t minTemp = irSensor.getMinTemp();
-				fbMainLayer.printf(244, 38, COLOR_GREEN, COLOR_BLACK, "MIN:%03u\x81", minTemp); 
+				fbMainLayer.printf(244, 38, COLOR_GREEN, COLOR_BLACK, "MIN:%3u\x81", minTemp); 
 
 				cntr = 0;
 			}
