@@ -11,8 +11,7 @@ osThreadId LEDThread1Handle, LEDThread2Handle, LTDCThreadHandle, SDRAMThreadHand
 
 LTDC_HandleTypeDef LtdcHandle;
 DMA2D_HandleTypeDef dma2dHandle;
-Framebuffer fbInfoPanel;
-Framebuffer fbMain;
+Framebuffer fbMainLayer;
 IRSensor irSensor;
 
 __IO uint32_t ReloadFlag = 0;
@@ -66,14 +65,11 @@ int main()
 	BSP_SDRAM_Init();
 	LCD_Config();
 
-	fbInfoPanel.init(&dma2dHandle, 2, FRAMEBUFFER_ADDR2, 80, 240, 0xffff, 0x0000);
-	fbInfoPanel.clear(0x00000000);
-	fbInfoPanel.setOrientation(LANDSCAPE);
-	
-	fbMain.init(&dma2dHandle, 1, FRAMEBUFFER_ADDR, THERMAL_RESOLUTION, THERMAL_RESOLUTION, 0xffff, 0x0000);
-	fbMain.setOrientation(LANDSCAPE);
+	fbMainLayer.init(&dma2dHandle, 1, FRAMEBUFFER_ADDR, 320, 240, 0xffff, 0x0000);
+	fbMainLayer.setOrientation(LANDSCAPE);
+	fbMainLayer.clear(0x00000000);
 
-	irSensor.init(&dma2dHandle, 1, FRAMEBUFFER_ADDR, ALTERNATE_COLOR_SCHEME);	
+	irSensor.init(&dma2dHandle, 1, FRAMEBUFFER_ADDR, 320, 240, ALTERNATE_COLOR_SCHEME);	
   
 	osThreadDef(LED3, LED_Thread1, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(LED4, LED_Thread2, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
@@ -154,54 +150,61 @@ static void LTDC_Thread(void const *argument)
 	(void) argument;
 
 	/* reconfigure the layer1 position  without Reloading*/
-	HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 0, 0);
+	//HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 0, 0);
 	/* reconfigure the layer2 position  without Reloading*/
-	HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 240, 1);
+	//HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 0, 1);
 
-	TickType_t xTime1, xTime2, xExecutionTime;
-	uint8_t minTemp = 0;
+	TickType_t xExecutionTime = 0;
 	uint8_t maxTemp = 0;
-	uint8_t prevHotDot = irSensor.getHotDotIndex();
-	uint8_t hotDot = 0;
+	uint8_t hotDotX = 0;
+	uint8_t hotDotY = 0;
+
+	const uint8_t hpUpdDelay = 8;
+	uint8_t cntr = 0;
+	bool oneTimeActionDone = false;
 
 	for (;;)
 	{
 		if (isDataReady)
 		{
-			xTime1 = xTaskGetTickCount();
+			const TickType_t xTime1 = xTaskGetTickCount();
+			
 			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, vis_mode);
+			fbMainLayer.printf(hotDotX * (THERMAL_RESOLUTION / 8), hotDotY * (THERMAL_RESOLUTION / 8), COLOR_WHITE, COLOR_BLACK, "%u\x81", maxTemp);
 			
-			hotDot = irSensor.getHotDotIndex();
-			prevHotDot = hotDot;
-			uint8_t x = hotDot / 8;
-			uint8_t y = hotDot % 8;
-			const uint16_t maxTempColor = irSensor.temperatureToRGB565(maxTemp, minTemp, maxTemp);
-			fbMain.printf(x * (THERMAL_RESOLUTION / 8), y * (THERMAL_RESOLUTION / 8), COLOR_WHITE, maxTempColor, "%u\x81", maxTemp);
-			
-			irSensor.drawGradient(FRAMEBUFFER_ADDR2, 4, 50, 19, 225);
-			isDataReady = false;
-			xTime2 = xTaskGetTickCount();
+			if (cntr >= hpUpdDelay)
+			{
+				const uint8_t hotDot = irSensor.getHotDotIndex();
+				hotDotX = hotDot / 8;
+				hotDotY = hotDot % 8;
+				
+				fbMainLayer.printf(244, 25, COLOR_WHITE, COLOR_BLACK, "VM: %01u", vis_mode);
+
+				const uint16_t cpuUsage = osGetCPUUsage();
+				fbMainLayer.printf(244, 0, COLOR_WHITE, COLOR_BLACK, "CPU: %02u%%", cpuUsage);
+
+				maxTemp = irSensor.getMaxTemp();
+				fbMainLayer.printf(244, 225, COLOR_RED, COLOR_BLACK, "MAX:%03u\x81", maxTemp);
+
+				const uint8_t minTemp = irSensor.getMinTemp();
+				fbMainLayer.printf(244, 38, COLOR_GREEN, COLOR_BLACK, "MIN:%03u\x81", minTemp); 
+
+				cntr = 0;
+			}
+			cntr++;
+
+			fbMainLayer.printf(244, 12, COLOR_WHITE, COLOR_BLACK, "T: %04u", xExecutionTime);
+
+			const TickType_t xTime2 = xTaskGetTickCount();
 			xExecutionTime = xTime2 - xTime1;
-			fbInfoPanel.printf(4, 12, COLOR_WHITE, COLOR_BLACK, "T: %04u", xExecutionTime);
-			fbInfoPanel.printf(4, 25, COLOR_WHITE, COLOR_BLACK, "VM: %01u", vis_mode);
 
-			const uint16_t cpuUsage = osGetCPUUsage();
-			fbInfoPanel.printf(4, 0, COLOR_WHITE, COLOR_BLACK, "CPU: %02u%%", cpuUsage);
+			isDataReady = false;
 
-			maxTemp = irSensor.getMaxTemp();
-			fbInfoPanel.printf(4, 225, COLOR_RED, COLOR_BLACK, "MAX:%03u\x81", maxTemp);
-
-			minTemp = irSensor.getMinTemp();
-			fbInfoPanel.printf(4, 38, COLOR_GREEN, COLOR_BLACK, "MIN:%03u\x81", minTemp);
-		
-			/* Ask for LTDC reload within next vertical blanking*/
-			//ReloadFlag = 0;
-			//HAL_LTDC_Reload(&LtdcHandle, LTDC_SRCR_VBR);
-      
-			//while (ReloadFlag == 0)
-			//{
-			  /* wait till reload takes effect (in the next vertical blanking period) */
-			//}
+			if (!oneTimeActionDone) //only once
+			{
+				irSensor.drawGradient(244, 50, 254, 225);
+				oneTimeActionDone = true;
+			}
 		}
 		
 		osDelay(50);
@@ -385,9 +388,9 @@ static void LCD_Config()
 	LtdcHandle.Init.TotalWidth = 279;
   
 	/* Configure R,G,B component values for LCD background color */
-	LtdcHandle.Init.Backcolor.Blue = 0;
-	LtdcHandle.Init.Backcolor.Green = 0;
-	LtdcHandle.Init.Backcolor.Red = 0;
+	LtdcHandle.Init.Backcolor.Blue = 0xFF;
+	LtdcHandle.Init.Backcolor.Green = 0xFF;
+	LtdcHandle.Init.Backcolor.Red = 0xFF;
 
 	LtdcHandle.Instance = LTDC;
   
@@ -395,9 +398,9 @@ static void LCD_Config()
   
 	/* Windowing configuration */ 
 	pLayerCfg.WindowX0 = 0;
-	pLayerCfg.WindowX1 = THERMAL_RESOLUTION;//240;
+	pLayerCfg.WindowX1 = 240;
 	pLayerCfg.WindowY0 = 0;
-	pLayerCfg.WindowY1 = THERMAL_RESOLUTION;//240;
+	pLayerCfg.WindowY1 = 320;
   
 	/* Pixel Format configuration*/ 
 	pLayerCfg.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
@@ -420,25 +423,25 @@ static void LCD_Config()
 	pLayerCfg.BlendingFactor2 = LTDC_BLENDING_FACTOR2_PAxCA;
   
 	/* Configure the number of lines and number of pixels per line */
-	pLayerCfg.ImageWidth = THERMAL_RESOLUTION;
-	pLayerCfg.ImageHeight = THERMAL_RESOLUTION;
+	pLayerCfg.ImageWidth = 240;
+	pLayerCfg.ImageHeight = 320;
 
 /* Layer2 Configuration ------------------------------------------------------*/
   
   /* Windowing configuration */
 	pLayerCfg1.WindowX0 = 0;
 	pLayerCfg1.WindowX1 = 240;
-	pLayerCfg1.WindowY0 = 240;
+	pLayerCfg1.WindowY0 = 0;
 	pLayerCfg1.WindowY1 = 320;
   
 	/* Pixel Format configuration*/ 
 	pLayerCfg1.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
   
 	/* Start Address configuration : frame buffer is located at FLASH memory */
-	pLayerCfg1.FBStartAdress = FRAMEBUFFER_ADDR2;
+	pLayerCfg1.FBStartAdress = FRAMEBUFFER2_ADDR;
   
 	/* Alpha constant (255 totally opaque) */
-	pLayerCfg1.Alpha = 255;
+	pLayerCfg1.Alpha = 0;
   
 	/* Default Color configuration (configure A,R,G,B component values) */
 	pLayerCfg1.Alpha0 = 0;
@@ -452,7 +455,7 @@ static void LCD_Config()
   
 	/* Configure the number of lines and number of pixels per line */
 	pLayerCfg1.ImageWidth = 240;
-	pLayerCfg1.ImageHeight = 80;  
+	pLayerCfg1.ImageHeight = 320;  
    
 	/* Configure the LTDC */  
 	if (HAL_LTDC_Init(&LtdcHandle) != HAL_OK)
@@ -467,13 +470,15 @@ static void LCD_Config()
 	  /* Initialization Error */
 		Error_Handler(11); 
 	}
+
+	HAL_LTDC_EnableDither(&LtdcHandle);
   
 	/* Configure the Foreground Layer*/
-	if (HAL_LTDC_ConfigLayer(&LtdcHandle, &pLayerCfg1, 1) != HAL_OK)
-	{
+	//if (HAL_LTDC_ConfigLayer(&LtdcHandle, &pLayerCfg1, 1) != HAL_OK)
+	//{
 	  /* Initialization Error */
-		Error_Handler(12); 
-	}  
+		//Error_Handler(12); 
+	//}  
 }
 
 

@@ -1,7 +1,5 @@
 ﻿#include <thermal.h>
-#include <math.h>
 #include "FreeRTOS.h"
-#include "task.h"
 #include "framebuffer.h"
 
 IRSensor::IRSensor()
@@ -11,6 +9,8 @@ IRSensor::IRSensor()
 	this->minTemp = 0;
 	this->maxTemp = 0;
 	this->layer = 0;
+	this->fbSizeX = 0;
+	this->fbSizeY = 0;
 }
 
 IRSensor::~IRSensor()
@@ -28,21 +28,33 @@ float IRSensor::rawHLtoTemp(const uint8_t rawL, const uint8_t rawH, const float 
 	return temp;
 }
 
-void IRSensor::init(DMA2D_HandleTypeDef* dma2dHandler, uint8_t layer, const uint32_t fb_addr, const uint8_t* colorScheme)
+void IRSensor::init(DMA2D_HandleTypeDef* dma2dHandler, uint8_t layer, const uint32_t fb_addr, const uint16_t fbSizeX, const uint16_t fbSizeY, const uint8_t* colorScheme)
 {
 	IOE_Write(GRID_EYE_ADDR, 0x00, 0x00); //set normal mode
 	IOE_Write(GRID_EYE_ADDR, 0x02, 0x00); //set 10 FPS mode
 	IOE_Write(GRID_EYE_ADDR, 0x03, 0x00); //disable INT
-	this->fb_addr = fb_addr;
+	setFbAddress(fb_addr);
 	this->dma2dHandler = dma2dHandler;
 	this->layer = layer;
 	this->setColorScheme(colorScheme);
+	this->setFbSize(fbSizeX, fbSizeY);
 }
-
 
 void IRSensor::setColorScheme(const uint8_t* colorScheme)
 {
 	this->colorScheme = colorScheme;
+}
+
+
+void IRSensor::setFbAddress(const uint32_t fb_addr)
+{
+	this->fb_addr = fb_addr;
+}
+
+void IRSensor::setFbSize(const uint16_t fbSizeX, const uint16_t fbSizeY)
+{
+	this->fbSizeX = fbSizeX;
+	this->fbSizeY = fbSizeY;
 }
 
 float IRSensor::readThermistor()
@@ -86,7 +98,7 @@ uint8_t IRSensor::getHotDotIndex()
 	return this->hotDotIndex;
 }
 
-void IRSensor::drawGradient(const uint32_t fb_addr, uint8_t startX, uint8_t startY, uint8_t stopX, uint8_t stopY)
+void IRSensor::drawGradient(uint8_t startX, uint8_t startY, uint8_t stopX, uint8_t stopY)
 {
 	const uint8_t height = stopY - startY;
 	const uint8_t width = stopX - startX;
@@ -100,7 +112,7 @@ void IRSensor::drawGradient(const uint32_t fb_addr, uint8_t startX, uint8_t star
 
 	for (uint8_t i = 0; i < width; i++)
 	{
-		volatile uint16_t *pSdramAddress = (uint16_t *)(fb_addr + (240 * (startX + i) + startY) * 2);
+		volatile uint16_t *pSdramAddress = (uint16_t *)(this->fb_addr + (240 * (startX + i) + startY) * 2);
 		for (uint8_t j = 0; j < height; j++)
 		{
 			*(volatile uint16_t *)pSdramAddress = line[j];	
@@ -114,14 +126,12 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint
 	uint8_t line = 0;
 	uint8_t row = 0;
 	float temp;
-	float minTempCorr = -1;
-	float maxTempCorr = +1;
-
-	uint16_t colors[64];
+	const float minTempCorr = -0.5;
+	const float maxTempCorr = +0.5;
 
 	TickType_t xTime1, xTime2, xExecutionTime;
 
-	volatile uint16_t *pSdramAddress = (uint16_t *)this->fb_addr;
+	volatile uint16_t* pSdramAddress = (uint16_t *)this->fb_addr;
 
 	if (method == 0)
 	{
@@ -141,13 +151,13 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint
 					for (uint8_t k = 0; k < rrepeat; k++) //repeat
 					{
 						*(volatile uint16_t *)pSdramAddress = colors[line * 8 + row];
-						pSdramAddress++;	
+						pSdramAddress++;
 					}
 					row++;
 				}
 				row = 0;
 			}
-			line++;				
+			line++;
 		}
 	}
 	else if (method == 1)
@@ -159,31 +169,23 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint
 		{
 			colors[i] = this->temperatureToRGB565(dots[i], minTemp + minTempCorr, maxTemp + maxTempCorr);		
 		}
+
+
 		
 		for (uint16_t j = 0; j < resY; j++) {
 			tmp = (float)(j) / (float)(resY - 1) * (8 - 1);
-			int16_t h = (int16_t) floor(tmp);
-			if (h < 0) {
-				h = 0;
-			}
-			else {
-				if (h >= 8 - 1) {
-					h = 8 - 2;
-				}
+			int16_t h = (int16_t)tmp;
+			if (h >= 8 - 1) {
+				h = 8 - 2;
 			}
 			u = tmp - h;
 
 			for (uint16_t i = 0; i < resX; i++) {
 
 				tmp = (float)(i) / (float)(resX - 1) * (8 - 1);
-				int16_t w = (int16_t) floor(tmp);
-				if (w < 0) {
-					w = 0;
-				}
-				else {
-					if (w >= 8 - 1) {
-						w = 8 - 2;
-					}
+				int16_t w = (int16_t)tmp;
+				if (w >= 8 - 1) {
+					w = 8 - 2;
 				}
 				t = tmp - w;
 
@@ -192,18 +194,15 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint
 				d3 = t * u;
 				d4 = (1 - t) * u;
 
-							/* Окрестные пиксели: colors[i][j] */
 				p1 = colors[h*8+w];
 				p2 = colors[h*8 + w + 1];
 				p3 = colors[(h + 1)*8 + w + 1];
 				p4 = colors[(h + 1)*8 + w];
 
-							/* Компоненты */
 				uint8_t blue = ((uint8_t)(p1 & 0x001f)*d1 + (uint8_t)(p2 & 0x001f)*d2 + (uint8_t)(p3 & 0x001f)*d3 + (uint8_t)(p4 & 0x001f)*d4);
 				uint8_t green = (uint8_t)((p1 >> 5) & 0x003f) * d1 + (uint8_t)((p2 >> 5) & 0x003f) * d2 + (uint8_t)((p3 >> 5) & 0x003f) * d3 + (uint8_t)((p4 >> 5) & 0x003f) * d4;
 				uint8_t red = (uint8_t)(p1 >> 11) * d1 + (uint8_t)(p2 >> 11) * d2 + (uint8_t)(p3 >> 11) * d3 + (uint8_t)(p4 >> 11) * d4;
 
-							/* Новый пиксел из RGB565  */
 				pSdramAddress = (uint16_t *)(this->fb_addr + (j * resX + i) * 2);
 				*(volatile uint16_t *)pSdramAddress = ((u_int16_t) red << 11) | ((u_int16_t) green << 5) | (blue);
 			}
@@ -216,28 +215,18 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint
 		
 		for (uint16_t j = 0; j < resY; j++) {
 			tmp = (float)(j) / (float)(resY - 1) * (8 - 1);
-			int16_t h = (int16_t) floor(tmp);
-			if (h < 0) {
-				h = 0;
-			}
-			else {
-				if (h >= 8 - 1) {
-					h = 8 - 2;
-				}
+			int16_t h = (int16_t)tmp;
+			if (h >= 8 - 1) {
+				h = 8 - 2;
 			}
 			u = tmp - h;
 
 			for (uint16_t i = 0; i < resX; i++) {
 
 				tmp = (float)(i) / (float)(resX - 1) * (8 - 1);
-				int16_t w = (int16_t) floor(tmp);
-				if (w < 0) {
-					w = 0;
-				}
-				else {
-					if (w >= 8 - 1) {
-						w = 8 - 2;
-					}
+				int16_t w = (int16_t)tmp;
+				if (w >= 8 - 1) {
+					w = 8 - 2;
 				}
 				t = tmp - w;
 
@@ -246,7 +235,6 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint
 				d3 = t * u;
 				d4 = (1 - t) * u;
 
-							/* Окрестные пиксели: dots[i][j] */
 				p1 = dots[h*8+w];
 				p2 = dots[h * 8 + w + 1];
 				p3 = dots[(h + 1) * 8 + w + 1];
@@ -254,12 +242,16 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint
 
 				temp = p1*d1 + p2*d2 + p3*d3 + p4*d4;
 
-							/* Новый пиксел из RGB565  */
 				pSdramAddress = (uint16_t *)(this->fb_addr + (j * resX + i) * 2);
 				*(volatile uint16_t *)pSdramAddress = this->temperatureToRGB565(temp, minTemp + minTempCorr, maxTemp + maxTempCorr);
 			}
 		}
 	}
+}
+
+void IRSensor::Dma2dXferCpltCallback(DMA2D_HandleTypeDef* hdma2d)
+{
+
 }
 
 void IRSensor::findMinAndMaxTemp()

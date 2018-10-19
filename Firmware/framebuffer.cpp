@@ -33,9 +33,15 @@ void Framebuffer::init(DMA2D_HandleTypeDef* dma2dHandler, uint8_t layer, const u
 	this->dma2dHandler = dma2dHandler;
 	this->fb_sizeX = fb_sizeX;
 	this->fb_sizeY = fb_sizeY;
-	this->fb_addr = fb_addr;
+	setFbAddr(fb_addr);
 	this->layer = layer;
 	this->setTextColor(color, bg_color);
+}
+
+
+void Framebuffer::setFbAddr(const uint32_t fb_addr)
+{
+	this->fb_addr = fb_addr;
 }
 
 void Framebuffer::setTextColor(const uint16_t color, const uint16_t bg_color)
@@ -124,8 +130,8 @@ void Framebuffer::putChar(const uint16_t x, uint16_t y, const uint8_t chr, const
 				}
 				pSdramAddress++;
 			}
-			pSdramAddress++;
-			*(volatile uint16_t *)pSdramAddress = bkgColor; //vertical empty line right from symbol
+			//pSdramAddress++;
+			//*(volatile uint16_t *)pSdramAddress = bkgColor; //vertical empty line right from symbol
 			pSdramAddress = (uint16_t *)this->fb_addr;
 			pSdramAddress += (y + i) * fb_sizeX + x;
 		}
@@ -152,12 +158,6 @@ void Framebuffer::putChar(const uint16_t x, uint16_t y, const uint8_t chr, const
 			}
 			pSdramAddress = (uint16_t *)this->fb_addr;
 			pSdramAddress += (x + i) * fb_sizeY + y;
-		}
-		pSdramAddress = (uint16_t *)this->fb_addr;
-		pSdramAddress += (x + f_width) * fb_sizeY + y;
-		for (uint8_t j = 0; j < f_height; j++) { //vertical empty line right from symbol
-			*(volatile uint16_t *)pSdramAddress = bkgColor;
-			pSdramAddress++;
 		}
 	}
 

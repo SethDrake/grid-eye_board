@@ -12,8 +12,10 @@ class IRSensor {
 public:
 	IRSensor();
 	~IRSensor();
-	void init(DMA2D_HandleTypeDef* dma2dHandler, uint8_t layer, const uint32_t fb_addr, const uint8_t* colorScheme);
+	void init(DMA2D_HandleTypeDef* dma2dHandler, uint8_t layer, const uint32_t fb_addr, const uint16_t fbSizeX, const uint16_t fbSizeY, const uint8_t* colorScheme);
 	void setColorScheme(const uint8_t* colorScheme);
+	void setFbAddress(const uint32_t fb_addr);
+	void setFbSize(const uint16_t fbSizeX, const uint16_t fbSizeY);
 	float readThermistor();
 	void readImage();
 	float* getTempMap();
@@ -22,7 +24,8 @@ public:
 	uint8_t getHotDotIndex();
 	uint16_t temperatureToRGB565(float temperature, float minTemp, float maxTemp);
 	void visualizeImage(uint8_t resX, uint8_t resY, const uint8_t method);
-	void drawGradient(const uint32_t fb_addr, uint8_t startX, uint8_t startY, uint8_t stopX, uint8_t stopY);
+	void drawGradient(uint8_t startX, uint8_t startY, uint8_t stopX, uint8_t stopY);
+	void Dma2dXferCpltCallback(DMA2D_HandleTypeDef *hdma2d);
 protected:
 	void findMinAndMaxTemp();
 	uint16_t rgb2color(uint8_t R, uint8_t G, uint8_t B);
@@ -31,8 +34,11 @@ private:
 	DMA2D_HandleTypeDef* dma2dHandler;
 	uint8_t layer;
 	uint32_t fb_addr;
+	uint16_t fbSizeX;
+	uint16_t fbSizeY;
 	const uint8_t* colorScheme;
 	float dots[64];
+	uint16_t colors[64];
 	uint8_t hotDotIndex;
 	float minTemp;
 	float maxTemp;
@@ -67,6 +73,38 @@ static const uint8_t ALTERNATE_COLOR_SCHEME[] = {
 	 251, 248, 117 ,
 	 252, 254, 253 
 };
+
+
+typedef struct
+{
+	void *   SourceBaseAddress; /* source bitmap Base Address */ 
+	uint16_t SourcePitch;       /* source pixel pitch */  
+	uint16_t SourceColorMode;   /* source color mode */
+	uint16_t SourceX;           /* souce X */  
+	uint16_t SourceY;           /* sourceY */
+	uint16_t SourceWidth;       /* source width */ 
+	uint16_t SourceHeight;      /* source height */
+	void *   OutputBaseAddress; /* output bitmap Base Address */
+	uint16_t OutputPitch;       /* output pixel pitch */  
+	uint16_t OutputColorMode;   /* output color mode */
+	uint16_t OutputX;           /* output X */  
+	uint16_t OutputY;           /* output Y */
+	uint16_t OutputWidth;       /* output width */ 
+	uint16_t OutputHeight;      /* output height */
+	uint32_t *WorkBuffer;       /* storage buffer */
+}RESIZE_InitTypedef;
+
+
+typedef enum
+{
+	D2D_STAGE_IDLE       = 0,
+	D2D_STAGE_FIRST_LOOP = 1,
+	D2D_STAGE_2ND_LOOP   = 2,
+	D2D_STAGE_DONE       = 3,
+	D2D_STAGE_ERROR      = 4,
+	D2D_STAGE_SETUP_BUSY = 5,
+	D2D_STAGE_SETUP_DONE = 6
+}D2D_Stage_Typedef;
 
 #endif /* __THERMAL_H */
 

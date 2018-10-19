@@ -29,6 +29,7 @@ public:
 	Framebuffer();
 	~Framebuffer();
 	void init(DMA2D_HandleTypeDef* dma2dHandler, uint8_t layer, const uint32_t fb_addr, const uint16_t fb_sizeX, const uint16_t fb_sizeY, const uint16_t color, const uint16_t bg_color);
+	void setFbAddr(const uint32_t fb_addr);
 	void setTextColor(const uint16_t color, const uint16_t bg_color);
 	void setOrientation(const FB_ORIENTATION orientation);
 	void clear(const uint32_t color);
