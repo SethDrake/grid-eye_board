@@ -155,7 +155,10 @@ static void LTDC_Thread(void const *argument)
 	//HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 0, 1);
 
 	TickType_t xExecutionTime = 0;
+	uint8_t minTemp = 0;
 	uint8_t maxTemp = 0;
+	uint8_t coldDotX = 0;
+	uint8_t coldDotY = 0;
 	uint8_t hotDotX = 0;
 	uint8_t hotDotY = 0;
 
@@ -169,14 +172,21 @@ static void LTDC_Thread(void const *argument)
 		{
 			const TickType_t xTime1 = xTaskGetTickCount();
 			
+			irSensor.setFbAddress(FRAMEBUFFER_ADDR);
+			fbMainLayer.setFbAddr(FRAMEBUFFER_ADDR);
+
 			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, vis_mode);
-			fbMainLayer.printf(hotDotX * (THERMAL_RESOLUTION / 8), hotDotY * (THERMAL_RESOLUTION / 8), COLOR_WHITE, COLOR_BLACK, "%u\x81", maxTemp);
+			fbMainLayer.printf(hotDotX * (THERMAL_RESOLUTION / 8), hotDotY * (THERMAL_RESOLUTION / 8), COLOR_BLACK, COLOR_WHITE, "%u\x81", maxTemp);
+			fbMainLayer.printf(coldDotX * (THERMAL_RESOLUTION / 8), coldDotY * (THERMAL_RESOLUTION / 8), COLOR_GREEN, COLOR_BLACK, "%u\x81", minTemp);
 			
 			if (cntr >= hpUpdDelay)
 			{
 				const uint8_t hotDot = irSensor.getHotDotIndex();
 				hotDotX = hotDot / 8;
 				hotDotY = hotDot % 8;
+				const uint8_t coldDot = irSensor.getColdDotIndex();
+				coldDotX = coldDot / 8;
+				coldDotY = coldDot % 8;
 				
 				fbMainLayer.printf(244, 25, COLOR_WHITE, COLOR_BLACK, "VM: %1u", vis_mode);
 
@@ -186,7 +196,7 @@ static void LTDC_Thread(void const *argument)
 				maxTemp = irSensor.getMaxTemp();
 				fbMainLayer.printf(244, 225, COLOR_RED, COLOR_BLACK, "MAX:%3u\x81", maxTemp);
 
-				const uint8_t minTemp = irSensor.getMinTemp();
+				minTemp = irSensor.getMinTemp();
 				fbMainLayer.printf(244, 38, COLOR_GREEN, COLOR_BLACK, "MIN:%3u\x81", minTemp); 
 
 				cntr = 0;
@@ -198,13 +208,12 @@ static void LTDC_Thread(void const *argument)
 			const TickType_t xTime2 = xTaskGetTickCount();
 			xExecutionTime = xTime2 - xTime1;
 
-			isDataReady = false;
-
 			if (!oneTimeActionDone) //only once
 			{
 				irSensor.drawGradient(244, 50, 254, 225);
 				oneTimeActionDone = true;
 			}
+			isDataReady = false;
 		}
 		
 		osDelay(50);

@@ -31,8 +31,8 @@ float IRSensor::rawHLtoTemp(const uint8_t rawL, const uint8_t rawH, const float 
 
 void IRSensor::init(DMA2D_HandleTypeDef* dma2dHandler, uint8_t layer, const uint32_t fb_addr, const uint16_t fbSizeX, const uint16_t fbSizeY, const uint8_t* colorScheme)
 {
-	IOE_Write(GRID_EYE_ADDR, 0x00, 0x00); //set normal mode
-	IOE_Write(GRID_EYE_ADDR, 0x02, 0x00); //set 10 FPS mode
+	//IOE_Write(GRID_EYE_ADDR, 0x00, 0x00); //set normal mode
+	//IOE_Write(GRID_EYE_ADDR, 0x02, 0x00); //set 10 FPS mode
 	IOE_Write(GRID_EYE_ADDR, 0x03, 0x00); //disable INT
 	setFbAddress(fb_addr);
 	this->dma2dHandler = dma2dHandler;
@@ -99,16 +99,21 @@ uint8_t IRSensor::getHotDotIndex()
 	return this->hotDotIndex;
 }
 
+uint8_t IRSensor::getColdDotIndex()
+{
+	return this->coldDotIndex;
+}
+
 void IRSensor::drawGradient(uint8_t startX, uint8_t startY, uint8_t stopX, uint8_t stopY)
 {
 	const uint8_t height = stopY - startY;
 	const uint8_t width = stopX - startX;
-	const float diff = (maxTemp - minTemp) / height;
+	const float diff = (maxTemp + minTempCorr - minTemp + maxTempCorr) / height;
 	uint16_t line[height];
 	for (uint8_t j = 0; j < height; j++)
 	{
 		const float temp = minTemp + (diff * j);
-		line[j] = temperatureToRGB565(temp, minTemp, maxTemp);	
+		line[j] = temperatureToRGB565(temp, minTemp + minTempCorr, maxTemp + maxTempCorr);	
 	}
 
 	for (uint8_t i = 0; i < width; i++)
@@ -126,11 +131,6 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint
 {
 	uint8_t line = 0;
 	uint8_t row = 0;
-	float temp;
-	const float minTempCorr = -0.5;
-	const float maxTempCorr = +0.5;
-
-	TickType_t xTime1, xTime2, xExecutionTime;
 
 	volatile uint16_t* pSdramAddress = (uint16_t *)this->fb_addr;
 
@@ -242,7 +242,7 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint
 				p3 = dots[(h + 1) * 8 + w + 1];
 				p4 = dots[(h + 1) * 8 + w];
 
-				temp = p1*d1 + p2*d2 + p3*d3 + p4*d4;
+				float temp = p1*d1 + p2*d2 + p3*d3 + p4*d4;
 
 				*(volatile uint16_t *)pSdramAddress = this->temperatureToRGB565(temp, minTemp + minTempCorr, maxTemp + maxTempCorr);
 				pSdramAddress++;
@@ -265,6 +265,7 @@ void IRSensor::findMinAndMaxTemp()
 		if (dots[i] < minTemp)
 		{
 			minTemp = dots[i];	
+			coldDotIndex = i;
 		}
 		if (dots[i] > maxTemp)
 		{

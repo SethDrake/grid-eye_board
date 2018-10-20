@@ -22,6 +22,7 @@ public:
 	float getMaxTemp();
 	float getMinTemp();
 	uint8_t getHotDotIndex();
+	uint8_t getColdDotIndex();
 	uint16_t temperatureToRGB565(float temperature, float minTemp, float maxTemp);
 	void visualizeImage(uint8_t resX, uint8_t resY, const uint8_t method);
 	void drawGradient(uint8_t startX, uint8_t startY, uint8_t stopX, uint8_t stopY);
@@ -39,10 +40,13 @@ private:
 	const uint8_t* colorScheme;
 	float dots[64];
 	uint16_t colors[64];
+	uint8_t coldDotIndex;
 	uint8_t hotDotIndex;
 	float minTemp;
 	float maxTemp;
 	float rawHLtoTemp(uint8_t rawL, uint8_t rawH, float coeff);
+	const float minTempCorr = -0.5;
+	const float maxTempCorr = + 0.5;
 };
 
 
