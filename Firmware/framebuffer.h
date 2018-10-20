@@ -5,6 +5,21 @@
 #include <stdint.h>
 #include "stm32f4xx_hal.h"
 
+/* ARGB1555 */
+#define ARGB_COLOR_RED		  0x7C00
+#define ARGB_COLOR_PURPLE	  0x7990
+#define ARGB_COLOR_GREEN	  0x03e0
+#define ARGB_COLOR_BLUE		  0x001f
+#define ARGB_COLOR_BLACK	  0x0000
+#define ARGB_COLOR_YELLOW	  0x7FE0
+#define ARGB_COLOR_ORANGE	  0x7E00
+#define ARGB_COLOR_WHITE	  0x7FFF
+#define ARGB_COLOR_CYAN		  0x03FF
+#define ARGB_COLOR_BRIGHT_RED 0x7C10
+#define ARGB_COLOR_GRAY1	  0x4210
+#define ARGB_COLOR_GRAY2	  0x2108
+
+/* RGB565 */
 #define COLOR_RED		  0xf800
 #define COLOR_PURPLE	  0xf310
 #define COLOR_GREEN		  0x07e0

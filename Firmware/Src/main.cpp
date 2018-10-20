@@ -7,18 +7,18 @@
 #include <thermal.h>
 #include <regex>
 
-osThreadId LEDThread1Handle, LEDThread2Handle, LTDCThreadHandle, SDRAMThreadHandle, GridEyeThreadHandle, ReadKeysTaskHandle; 
+osThreadId LEDThread1Handle, LEDThread2Handle, LTDCThreadHandle, SDRAMThreadHandle, GridEyeThreadHandle, ReadKeysTaskHandle, SwapBuffersTaskHandle; 
 
 LTDC_HandleTypeDef LtdcHandle;
 DMA2D_HandleTypeDef dma2dHandle;
 Framebuffer fbMainLayer;
+Framebuffer fbInfoLayer;
 IRSensor irSensor;
 
 __IO uint32_t ReloadFlag = 0;
 __IO uint8_t vis_mode = 0;
-__IO bool isDataReady;
+__IO uint8_t sensorReady = 0;
 
-//uint16_t pixels[THERMAL_RESOLUTION * THERMAL_RESOLUTION];
 
 /* Private function prototypes -----------------------------------------------*/
 static void LED_Thread1(void const *argument);
@@ -27,6 +27,7 @@ static void LTDC_Thread(void const *argument);
 static void SDRAM_Thread(void const *argument);
 static void GridEye_Thread(void const *argument);
 static void ReadKeys_Thread(void const *argument);
+static void SwapBuffers_Thread(void const *argument);
 
 static void SystemClock_Config();
 static void LCD_Config();
@@ -67,7 +68,11 @@ int main()
 
 	fbMainLayer.init(&dma2dHandle, 1, FRAMEBUFFER_ADDR, 320, 240, 0xffff, 0x0000);
 	fbMainLayer.setOrientation(LANDSCAPE);
-	fbMainLayer.clear(0x00000000);
+	fbMainLayer.clear(0xFF000000);
+
+	fbInfoLayer.init(&dma2dHandle, 1, FRAMEBUFFER2_ADDR, 320, 240, ARGB_COLOR_WHITE | 0x8000, ARGB_COLOR_BLACK);
+	fbInfoLayer.setOrientation(LANDSCAPE);
+	fbInfoLayer.clear(0x00000000);
 
 	irSensor.init(&dma2dHandle, 1, FRAMEBUFFER_ADDR, 320, 240, ALTERNATE_COLOR_SCHEME);
   
@@ -77,6 +82,7 @@ int main()
 	osThreadDef(SDRAM, SDRAM_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(GRID_EYE, GridEye_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(READ_KEYS, ReadKeys_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+	osThreadDef(SWAP_BUFFERS, SwapBuffers_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
   
 	LEDThread1Handle = osThreadCreate(osThread(LED3), NULL);
 	LEDThread2Handle = osThreadCreate(osThread(LED4), NULL);
@@ -84,6 +90,7 @@ int main()
 	SDRAMThreadHandle = osThreadCreate(osThread(SDRAM), NULL);
 	GridEyeThreadHandle = osThreadCreate(osThread(GRID_EYE), NULL);
 	ReadKeysTaskHandle = osThreadCreate(osThread(READ_KEYS), NULL);
+	SwapBuffersTaskHandle = osThreadCreate(osThread(SWAP_BUFFERS), NULL);
   
 	/* Start scheduler */
 	osKernelStart();
@@ -140,8 +147,11 @@ static void GridEye_Thread(void const *argument)
 	for (;;)
 	{
 		irSensor.readImage();
-		isDataReady = true;
-		osDelay(95);
+		if (!sensorReady)
+		{
+			sensorReady = true;
+		}
+		osDelay(90);
 	}
 }
 
@@ -162,61 +172,63 @@ static void LTDC_Thread(void const *argument)
 	uint8_t hotDotX = 0;
 	uint8_t hotDotY = 0;
 
-	const uint8_t hpUpdDelay = 8;
-	uint8_t cntr = 0;
+	uint16_t cpuUsage = 0;
+	const uint8_t hpUpdDelay = 10;
+	uint8_t cntr = hpUpdDelay;
 	bool oneTimeActionDone = false;
 
 	for (;;)
 	{
-		if (isDataReady)
+		if (sensorReady)
 		{
 			const TickType_t xTime1 = xTaskGetTickCount();
 			
-			irSensor.setFbAddress(FRAMEBUFFER_ADDR);
-			fbMainLayer.setFbAddr(FRAMEBUFFER_ADDR);
-
 			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, vis_mode);
-			fbMainLayer.printf(hotDotX * (THERMAL_RESOLUTION / 8), hotDotY * (THERMAL_RESOLUTION / 8), COLOR_BLACK, COLOR_WHITE, "%u\x81", maxTemp);
-			fbMainLayer.printf(coldDotX * (THERMAL_RESOLUTION / 8), coldDotY * (THERMAL_RESOLUTION / 8), COLOR_GREEN, COLOR_BLACK, "%u\x81", minTemp);
+			if (!oneTimeActionDone)
+			{
+				irSensor.drawGradient(244, 50, 254, 225);	
+				oneTimeActionDone = true;
+			}
 			
 			if (cntr >= hpUpdDelay)
 			{
+				cntr = 0;
 				const uint8_t hotDot = irSensor.getHotDotIndex();
 				hotDotX = hotDot / 8;
 				hotDotY = hotDot % 8;
 				const uint8_t coldDot = irSensor.getColdDotIndex();
 				coldDotX = coldDot / 8;
 				coldDotY = coldDot % 8;
-				
-				fbMainLayer.printf(244, 25, COLOR_WHITE, COLOR_BLACK, "VM: %1u", vis_mode);
-
-				const uint16_t cpuUsage = osGetCPUUsage();
-				fbMainLayer.printf(244, 0, COLOR_WHITE, COLOR_BLACK, "CPU: %2u%%", cpuUsage);
-
+				cpuUsage = osGetCPUUsage();
 				maxTemp = irSensor.getMaxTemp();
-				fbMainLayer.printf(244, 225, COLOR_RED, COLOR_BLACK, "MAX:%3u\x81", maxTemp);
-
 				minTemp = irSensor.getMinTemp();
-				fbMainLayer.printf(244, 38, COLOR_GREEN, COLOR_BLACK, "MIN:%3u\x81", minTemp); 
 
-				cntr = 0;
+				fbInfoLayer.clear(0x00000000);
+
+				fbInfoLayer.printf(hotDotX * (THERMAL_RESOLUTION / 8), hotDotY * (THERMAL_RESOLUTION / 8), ARGB_COLOR_BLACK | 0x8000, ARGB_COLOR_BLACK, "%u\x81", maxTemp);
+				fbInfoLayer.printf(coldDotX * (THERMAL_RESOLUTION / 8), coldDotY * (THERMAL_RESOLUTION / 8), ARGB_COLOR_GREEN | 0x8000, ARGB_COLOR_BLACK, "%u\x81", minTemp);
+				fbInfoLayer.printf(244, 25, "VM: %1u", vis_mode);
+				fbInfoLayer.printf(244, 0, "CPU: %2u", cpuUsage);
+				fbInfoLayer.printf(244, 12, "T: %04u", xExecutionTime);
+				fbInfoLayer.printf(244, 225, ARGB_COLOR_RED | 0x8000, ARGB_COLOR_BLACK, "MAX:%3u\x81", maxTemp);
+				fbInfoLayer.printf(244, 38, ARGB_COLOR_GREEN | 0x8000, ARGB_COLOR_BLACK, "MIN:%3u\x81", minTemp);
 			}
 			cntr++;
 
-			fbMainLayer.printf(244, 12, COLOR_WHITE, COLOR_BLACK, "T: %04u", xExecutionTime);
-
 			const TickType_t xTime2 = xTaskGetTickCount();
 			xExecutionTime = xTime2 - xTime1;
-
-			if (!oneTimeActionDone) //only once
-			{
-				irSensor.drawGradient(244, 50, 254, 225);
-				oneTimeActionDone = true;
-			}
-			isDataReady = false;
 		}
-		
-		osDelay(50);
+				
+		osDelay(100);
+	}
+}
+
+static void SwapBuffers_Thread(void const *argument)
+{
+	(void) argument;
+	for (;;)
+	{
+		osDelay(2000);
 	}
 }
 
@@ -372,14 +384,14 @@ static void LCD_Config()
 	    ActiveW=240 (269-20-10+1)
 	    HFP=10 (279-240-20-10+1)
 
-	          VSYNC=2 (1+1)
-	          VBP=2 (3-2+1)
-	          ActiveH=320 (323-2-2+1)
-	          VFP=4 (327-320-2-2+1)
-	        */  
+	    VSYNC=2 (1+1)
+	    VBP=2 (3-2+1)
+	    ActiveH=320 (323-2-2+1)
+	    VFP=4 (327-320-2-2+1)
+	*/  
 
-	          /* Timing configuration */
-	          /* Horizontal synchronization width = Hsync - 1 */  
+	/* Timing configuration */
+	/* Horizontal synchronization width = Hsync - 1 */  
 	LtdcHandle.Init.HorizontalSync = 9;
 	/* Vertical synchronization height = Vsync - 1 */
 	LtdcHandle.Init.VerticalSync = 1;
@@ -416,7 +428,6 @@ static void LCD_Config()
   
 	/* Start Address configuration : frame buffer is located at FLASH memory */
 	pLayerCfg.FBStartAdress = FRAMEBUFFER_ADDR;
-	//pLayerCfg.FBStartAdress = (uint32_t)&pixels; 
   
 	/* Alpha constant (255 totally opaque) */
 	pLayerCfg.Alpha = 255;
@@ -444,13 +455,13 @@ static void LCD_Config()
 	pLayerCfg1.WindowY1 = 320;
   
 	/* Pixel Format configuration*/ 
-	pLayerCfg1.PixelFormat = LTDC_PIXEL_FORMAT_RGB565;
+	pLayerCfg1.PixelFormat = LTDC_PIXEL_FORMAT_ARGB1555;
   
 	/* Start Address configuration : frame buffer is located at FLASH memory */
 	pLayerCfg1.FBStartAdress = FRAMEBUFFER2_ADDR;
   
 	/* Alpha constant (255 totally opaque) */
-	pLayerCfg1.Alpha = 0;
+	pLayerCfg1.Alpha = 205;
   
 	/* Default Color configuration (configure A,R,G,B component values) */
 	pLayerCfg1.Alpha0 = 0;
@@ -479,15 +490,13 @@ static void LCD_Config()
 	  /* Initialization Error */
 		Error_Handler(11); 
 	}
-
-	HAL_LTDC_EnableDither(&LtdcHandle);
   
 	/* Configure the Foreground Layer*/
-	//if (HAL_LTDC_ConfigLayer(&LtdcHandle, &pLayerCfg1, 1) != HAL_OK)
-	//{
+	if (HAL_LTDC_ConfigLayer(&LtdcHandle, &pLayerCfg1, 1) != HAL_OK)
+	{
 	  /* Initialization Error */
-		//Error_Handler(12); 
-	//}  
+		Error_Handler(12); 
+	}  
 }
 
 

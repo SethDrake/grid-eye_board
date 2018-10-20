@@ -66,7 +66,8 @@ void Framebuffer::clear(const uint32_t color)
 	{
 		if (HAL_DMA2D_ConfigLayer(this->dma2dHandler, layer) == HAL_OK) 
 		{
-			HAL_DMA2D_Start_IT(this->dma2dHandler, color, this->fb_addr, this->fb_sizeX, this->fb_sizeY);
+			HAL_DMA2D_Start(this->dma2dHandler, color, this->fb_addr, this->fb_sizeX, this->fb_sizeY);
+			HAL_DMA2D_PollForTransfer(this->dma2dHandler, 10);
 		}
 	} 
 
