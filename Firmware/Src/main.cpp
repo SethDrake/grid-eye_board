@@ -207,11 +207,11 @@ static void LTDC_Thread(void const *argument)
 
 				fbInfoLayer.printf(hotDotX * (THERMAL_RESOLUTION / 8), hotDotY * (THERMAL_RESOLUTION / 8), ARGB_COLOR_BLACK | 0x8000, ARGB_COLOR_BLACK, "%u\x81", maxTemp);
 				fbInfoLayer.printf(coldDotX * (THERMAL_RESOLUTION / 8), coldDotY * (THERMAL_RESOLUTION / 8), ARGB_COLOR_GREEN | 0x8000, ARGB_COLOR_BLACK, "%u\x81", minTemp);
-				fbInfoLayer.printf(244, 25, "VM: %1u", vis_mode);
-				fbInfoLayer.printf(244, 0, "CPU: %2u", cpuUsage);
+				fbInfoLayer.printf(244, 25, "VM: %u", vis_mode);
+				fbInfoLayer.printf(244, 0, "CPU: %u%%", cpuUsage);
 				fbInfoLayer.printf(244, 12, "T: %04u", xExecutionTime);
-				fbInfoLayer.printf(244, 225, ARGB_COLOR_RED | 0x8000, ARGB_COLOR_BLACK, "MAX:%3u\x81", maxTemp);
-				fbInfoLayer.printf(244, 38, ARGB_COLOR_GREEN | 0x8000, ARGB_COLOR_BLACK, "MIN:%3u\x81", minTemp);
+				fbInfoLayer.printf(244, 225, ARGB_COLOR_RED | 0x8000, ARGB_COLOR_BLACK, "MAX:%u\x81", maxTemp);
+				fbInfoLayer.printf(244, 38, ARGB_COLOR_GREEN | 0x8000, ARGB_COLOR_BLACK, "MIN:%u\x81", minTemp);
 			}
 			cntr++;
 
@@ -219,7 +219,7 @@ static void LTDC_Thread(void const *argument)
 			xExecutionTime = xTime2 - xTime1;
 		}
 				
-		osDelay(100);
+		osDelay(75);
 	}
 }
 
