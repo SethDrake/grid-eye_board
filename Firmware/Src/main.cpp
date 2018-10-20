@@ -16,7 +16,7 @@ Framebuffer fbInfoLayer;
 IRSensor irSensor;
 
 __IO uint32_t ReloadFlag = 0;
-__IO uint8_t vis_mode = 0;
+__IO uint8_t vis_mode = 1;
 __IO uint8_t sensorReady = 0;
 
 
