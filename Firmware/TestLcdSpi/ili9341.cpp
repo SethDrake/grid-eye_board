@@ -279,7 +279,7 @@ void ILI9341::fillScreen(uint16_t xstart, uint16_t ystart, uint16_t xstop, uint1
 
 	switchRs(1);
 
-	if (false && !disableDMA) {
+	if (!disableDMA) {
 		initDMAforSendSPI(true);
 		manualCsControl = 1;
 		while (pixels > max_buf_size) {
@@ -335,7 +335,7 @@ void ILI9341::bufferDraw(uint16_t x, uint16_t y, uint16_t xsize, uint16_t ysize,
 		}
 		manualCsControl = 0;
 		DMATXStart(buf, pixels);
-		//while (this->isDataSending) {}; //wait until all data wasn't sended
+		while (this->isDataSending) {}; //wait until all data wasn't sended
 	}
 	else 
 	{
