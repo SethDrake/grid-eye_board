@@ -1,11 +1,10 @@
 
-#include "cmsis_os.h"
 #include "main.h"
+#include "cmsis_os.h"
 #include <ili9341.h>
 #include <stm32f429i_discovery.h>
 #include <framebuffer.h>
 #include <thermal.h>
-#include <regex>
 
 osThreadId LEDThread1Handle, LEDThread2Handle, LTDCThreadHandle, SDRAMThreadHandle, GridEyeThreadHandle, ReadKeysTaskHandle, SwapBuffersTaskHandle; 
 

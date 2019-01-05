@@ -11,10 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{70AF4951-9031-4A43-8036-D894A3AF6157}</ProjectGuid>
-    <BSP_VERSION>2018.08</BSP_VERSION>
-    <BSP_ID>com.sysprogs.arm.stm32</BSP_ID>
-    <InPlaceBSPSubdir />
+    <ProjectGuid>{2C601352-33FC-4E6E-91E0-59BF96C804D1}</ProjectGuid>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Label="Configuration" Condition="'$(Configuration)|$(Platform)'=='Release|VisualGDB'">
@@ -32,19 +29,15 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|VisualGDB'">
     <GNUConfigurationType>Debug</GNUConfigurationType>
     <Toolchain>c:\SysGCC\arm-eabi</Toolchain>
-    <ToolchainID>com.visualgdb.arm-eabi</ToolchainID>
-    <ToolchainVersion>7.2.0/8.0.1/r3</ToolchainVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|VisualGDB'">
     <Toolchain>c:\SysGCC\arm-eabi</Toolchain>
-    <ToolchainID>com.visualgdb.arm-eabi</ToolchainID>
-    <ToolchainVersion>7.2.0/8.0.1/r3</ToolchainVersion>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|VisualGDB'">
     <ClCompile>
-      <AdditionalIncludeDirectories>Inc;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/STM32F4xxxx/CMSIS_HAL/Device/ST/STM32F4xx/Include;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/STM32F4xxxx/STM32F4xx_HAL_Driver/Inc;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/Components;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/STM32F429I-Discovery;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/FreeRTOS/Source/portable/GCC/ARM_CM4F;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/FreeRTOS/Source/CMSIS_RTOS;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/FreeRTOS/Source/include;Support/STM32Cube_FW_F4_V1.19.0/Utilities;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/STM32F4xxxx/CMSIS_HAL/Include;C:/SysGCC/arm-eabi/arm-eabi/include/c++/7.2.0;C:/SysGCC/arm-eabi/arm-eabi/include;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/common;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/ili9341;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/l3gd20;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/stmpe811;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/fonts;C:/Users/serge/AppData/Local/VisualGDB/EmbeddedBSPs/arm-eabi/com.sysprogs.arm.stm32/Utilities/CPU;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>DEBUG=1;USE_HAL_DRIVER;USE_STM32F429I_DISCO;STM32F429xx;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
-      <DumpStackUsage>true</DumpStackUsage>
+      <AdditionalIncludeDirectories>C:/SysGCC/arm-eabi/arm-eabi/include/c++/7.2.0;C:/SysGCC/arm-eabi/arm-eabi/include;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>DEBUG=1;DEBUG_DEFAULT_INTERRUPT_HANDLERS=1;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
+      <Optimization>O0</Optimization>
     </ClCompile>
     <Link>
       <AdditionalLinkerInputs>;%(Link.AdditionalLinkerInputs)</AdditionalLinkerInputs>
@@ -55,8 +48,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|VisualGDB'">
     <ClCompile>
-      <AdditionalIncludeDirectories>Inc;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/STM32F4xxxx/CMSIS_HAL/Device/ST/STM32F4xx/Include;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/STM32F4xxxx/STM32F4xx_HAL_Driver/Inc;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/Components;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/STM32F429I-Discovery;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/FreeRTOS/Source/portable/GCC/ARM_CM4F;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/FreeRTOS/Source/CMSIS_RTOS;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/FreeRTOS/Source/include;Support/STM32Cube_FW_F4_V1.19.0/Utilities;C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32/STM32F4xxxx/CMSIS_HAL/Include;C:/SysGCC/arm-eabi/arm-eabi/include/c++/7.2.0;C:/SysGCC/arm-eabi/arm-eabi/include;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/common;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/ili9341;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/l3gd20;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/stmpe811;Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/fonts;C:/Users/serge/AppData/Local/VisualGDB/EmbeddedBSPs/arm-eabi/com.sysprogs.arm.stm32/Utilities/CPU;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NDEBUG=1;RELEASE=1;USE_HAL_DRIVER;USE_STM32F429I_DISCO;STM32F429xx;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>C:/SysGCC/arm-eabi/arm-eabi/include/c++/7.2.0;C:/SysGCC/arm-eabi/arm-eabi/include;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>NDEBUG=1;RELEASE=1;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
       <Optimization>O3</Optimization>
     </ClCompile>
     <Link>
@@ -66,6 +59,112 @@
       <LinkerScript />
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\croutine.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\event_groups.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\list.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\portable\GCC\ARM_CM4F\port.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\portable\MemMang\heap_4.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\queue.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\tasks.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\timers.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\StartupFiles\startup_stm32f429xx.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_adc.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_adc_ex.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_can.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_cec.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_cortex.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_crc.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_cryp.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_cryp_ex.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dac.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dac_ex.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dcmi.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dcmi_ex.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dfsdm.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dma.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dma2d.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dma_ex.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dsi.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_eth.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_flash.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_flash_ex.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_flash_ramfunc.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_fmpi2c.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_fmpi2c_ex.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_gpio.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_hash.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_hash_ex.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_hcd.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_i2c.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_i2c_ex.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_i2s.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_i2s_ex.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_irda.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_iwdg.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_lptim.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_ltdc.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_ltdc_ex.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_mmc.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_nand.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_nor.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pccard.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pcd.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pcd_ex.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pwr.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pwr_ex.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_qspi.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_rcc.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_rcc_ex.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_rng.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_rtc.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_rtc_ex.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_sai.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_sai_ex.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_sd.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_sdram.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_smartcard.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_spdifrx.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_spi.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_sram.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_tim.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_tim_ex.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_uart.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_usart.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_wwdg.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_adc.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_crc.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_dac.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_dma.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_dma2d.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_exti.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_fmc.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_fsmc.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_gpio.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_i2c.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_lptim.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_pwr.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_rcc.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_rng.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_rtc.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_sdmmc.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_spi.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_tim.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_usart.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_usb.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_utils.c" />
+    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\Utilities\CPU\cpu_utils.c" />
+    <ClCompile Include="delay.cpp" />
+    <ClCompile Include="framebuffer.cpp" />
+    <ClCompile Include="ili9341.cpp" />
+    <ClCompile Include="sdram.cpp" />
+    <ClCompile Include="stm32f4xx_it.cpp" />
+    <ClCompile Include="system_stm32f4xx.c" />
+    <ClCompile Include="main.cpp" />
+    <ClCompile Include="thermal.cpp" />
+  </ItemGroup>
   <ItemGroup>
     <ClInclude Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.h" />
     <ClInclude Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\include\croutine.h" />
@@ -197,152 +296,29 @@
     <ClInclude Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Inc\stm32f4xx_ll_utils.h" />
     <ClInclude Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Inc\stm32f4xx_ll_wwdg.h" />
     <ClInclude Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\Utilities\CPU\cpu_utils.h" />
+    <ClInclude Include="delay.h" />
     <ClInclude Include="framebuffer.h" />
-    <ClInclude Include="Inc\mini_fonts.h" />
-    <ClInclude Include="Inc\FreeRTOSConfig.h" />
-    <ClInclude Include="Inc\main.h" />
-    <ClInclude Include="Inc\stm32f4xx_hal_conf.h" />
-    <ClInclude Include="Inc\stm32f4xx_it.h" />
-    <ClInclude Include="Inc\thermal.h" />
-    <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\components\common\gyro.h" />
-    <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\components\common\io.h" />
-    <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\components\common\lcd.h" />
-    <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\Components\ili9341\ili9341.h" />
-    <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\components\l3gd20\l3gd20.h" />
-    <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\components\stmpe811\stmpe811.h" />
-    <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\fonts\fonts.h" />
-    <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery.h" />
-    <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_gyroscope.h" />
-    <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_io.h" />
-    <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_lcd.h" />
-    <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_sdram.h" />
-    <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_ts.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\CMSIS_RTOS\cmsis_os.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\croutine.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\event_groups.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\list.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\portable\GCC\ARM_CM4F\port.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\portable\MemMang\heap_4.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\queue.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\tasks.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\timers.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\StartupFiles\startup_stm32f429xx.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_adc.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_adc_ex.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_can.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_cec.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_cortex.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_crc.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_cryp.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_cryp_ex.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dac.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dac_ex.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dcmi.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dcmi_ex.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dfsdm.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dma.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dma2d.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dma_ex.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_dsi.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_eth.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_flash.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_flash_ex.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_flash_ramfunc.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_fmpi2c.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_fmpi2c_ex.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_gpio.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_hash.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_hash_ex.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_hcd.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_i2c.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_i2c_ex.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_i2s.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_i2s_ex.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_irda.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_iwdg.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_lptim.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_ltdc.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_ltdc_ex.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_mmc.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_nand.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_nor.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pccard.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pcd.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pcd_ex.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pwr.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_pwr_ex.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_qspi.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_rcc.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_rcc_ex.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_rng.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_rtc.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_rtc_ex.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_sai.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_sai_ex.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_sd.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_sdram.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_smartcard.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_spdifrx.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_spi.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_sram.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_tim.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_tim_ex.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_uart.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_usart.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_hal_wwdg.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_adc.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_crc.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_dac.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_dma.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_dma2d.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_exti.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_fmc.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_fsmc.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_gpio.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_i2c.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_lptim.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_pwr.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_rcc.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_rng.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_rtc.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_sdmmc.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_spi.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_tim.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_usart.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_usb.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\STM32F4xxxx\STM32F4xx_HAL_Driver\Src\stm32f4xx_ll_utils.c" />
-    <ClCompile Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\Utilities\CPU\cpu_utils.c" />
-    <ClCompile Include="framebuffer.cpp" />
-    <ClCompile Include="Src\main.cpp" />
-    <ClCompile Include="Src\stm32f4xx_hal_timebase_tim.c" />
-    <ClCompile Include="Src\stm32f4xx_it.c" />
-    <ClCompile Include="Src\system_stm32f4xx.c" />
-    <ClCompile Include="Src\thermal.cpp" />
-    <ClCompile Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\components\ili9341\ili9341.c" />
-    <ClCompile Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\components\l3gd20\l3gd20.c" />
-    <ClCompile Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\components\stmpe811\stmpe811.c" />
-    <ClCompile Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery.c" />
-    <ClCompile Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_gyroscope.c" />
-    <ClCompile Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_io.c" />
-    <ClCompile Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_lcd.c" />
-    <ClCompile Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_sdram.c" />
-    <ClCompile Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_ts.c" />
+    <ClInclude Include="FreeRTOSConfig.h" />
+    <ClInclude Include="ili9341.h" />
+    <ClInclude Include="main.h" />
+    <ClInclude Include="mini_fonts.h" />
+    <ClInclude Include="sdram.h" />
+    <ClInclude Include="stm32f4xx_hal_conf.h" />
+    <ClInclude Include="stm32f4xx_it.h" />
+    <ClInclude Include="thermal.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="stm32.props" />
-    <None Include="T-Scan-Debug.vgdbsettings" />
-    <None Include="T-Scan-Release.vgdbsettings" />
-  </ItemGroup>
-  <ItemGroup>
-    <Xml Include="stm32.xml" />
+    <None Include="TestLcdSpi-Debug.vgdbsettings" />
+    <None Include="TestLcdSpi-Release.vgdbsettings" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\License\license.txt" />
     <Text Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\readme.txt" />
     <Text Include="C:\Users\serge\AppData\Local\VisualGDB\EmbeddedBSPs\arm-eabi\com.sysprogs.arm.stm32\FreeRTOS\Source\st_readme.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <Xml Include="stm32.xml" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

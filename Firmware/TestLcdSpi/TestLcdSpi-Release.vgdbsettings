@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <VisualGDBProjectSettings2 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
-  <ConfigurationName>Debug</ConfigurationName>
+  <ConfigurationName>Release</ConfigurationName>
   <Project xsi:type="com.visualgdb.project.embedded">
     <CustomSourceDirectories>
       <Directories />
@@ -10,28 +10,7 @@
     <EmbeddedProfileFile>stm32.xml</EmbeddedProfileFile>
   </Project>
   <Build xsi:type="com.visualgdb.build.msbuild">
-    <Toolchain>
-      <Name>ARM</Name>
-      <UniqueID>com.visualgdb.arm-eabi</UniqueID>
-      <Location>c:\SysGCC\arm-eabi</Location>
-      <UnixSystem>false</UnixSystem>
-      <GCC>c:\SysGCC\arm-eabi\bin\arm-eabi-gcc.exe</GCC>
-      <GXX>c:\SysGCC\arm-eabi\bin\arm-eabi-g++.exe</GXX>
-      <GDB>c:\SysGCC\arm-eabi\bin\arm-eabi-gdb.exe</GDB>
-      <AR>c:\SysGCC\arm-eabi\bin\arm-eabi-ar.exe</AR>
-      <OBJCOPY>c:\SysGCC\arm-eabi\bin\arm-eabi-objcopy.exe</OBJCOPY>
-      <Make>c:\SysGCC\arm-eabi\bin\make.exe</Make>
-      <AdditionalPathDirectories>
-        <string>c:\SysGCC\arm-eabi\bin</string>
-      </AdditionalPathDirectories>
-      <RequireCmdExe>false</RequireCmdExe>
-      <RequireCtrlBreak>false</RequireCtrlBreak>
-      <SourceDirMapping>
-        <Directories />
-        <PathStyle>MinGWUnixSlash</PathStyle>
-      </SourceDirMapping>
-    </Toolchain>
-    <ProjectFile>T-Scan.vcxproj</ProjectFile>
+    <ProjectFile>TestLcdSpi.vcxproj</ProjectFile>
     <RemoteBuildEnvironment>
       <Records />
     </RemoteBuildEnvironment>
@@ -138,7 +117,7 @@
       </Entries>
     </DebugMethodProperties>
     <AutoDetectRTOS>true</AutoDetectRTOS>
-    <SemihostingSupport>Disabled</SemihostingSupport>
+    <SemihostingSupport>Auto</SemihostingSupport>
     <StepIntoEntryPoint>false</StepIntoEntryPoint>
     <ReloadFirmwareOnReset>false</ReloadFirmwareOnReset>
     <ValidateEndOfStackAddress>true</ValidateEndOfStackAddress>
@@ -191,20 +170,8 @@
   <ImportedPropertySheets />
   <CodeSense>
     <Enabled>Unknown</Enabled>
-    <CFLAGS />
-    <CXXFLAGS />
-    <ExternalSourceFileList />
     <ExtraSettings>
       <HideErrorsInSystemHeaders>true</HideErrorsInSystemHeaders>
-      <DiscoverySettings>
-        <Mode>Enabled</Mode>
-        <SearchInProjectDir>true</SearchInProjectDir>
-        <SearchInSourceDirs>true</SearchInSourceDirs>
-        <SearchInIncludeSubdirs>true</SearchInIncludeSubdirs>
-        <ExtraSearchDirs />
-        <IgnoredDirs />
-        <IgnoredHeaders />
-      </DiscoverySettings>
     </ExtraSettings>
   </CodeSense>
   <BuildContextDirectory>VisualGDB\VisualGDBCache</BuildContextDirectory>
