@@ -267,6 +267,15 @@ void ILI9341::setPortrait()
 	isLandscape = false;
 }
 
+void ILI9341::waitForSendedOrTimeout(uint32_t timeout)
+{
+	while(this->isDataSending && timeout > 0)
+	{
+		timeout--;
+	}
+	this->isDataSending = 0;
+}
+
 void ILI9341::fillScreen(uint16_t xstart, uint16_t ystart, uint16_t xstop, uint16_t ystop, uint16_t color)
 {
 	while (this->isDataSending){}; //wait until all data wasn't sended
@@ -285,11 +294,11 @@ void ILI9341::fillScreen(uint16_t xstart, uint16_t ystart, uint16_t xstop, uint1
 		while (pixels > max_buf_size) {
 			DMATXStart(&color, max_buf_size);
 			pixels -= max_buf_size;
-			while (this->isDataSending) {}; //wait until all data wasn't sended
+			waitForSendedOrTimeout(SEND_TIMEOUT); //wait until all data wasn't sended
 		}
 		manualCsControl = 0;
 		DMATXStart(&color, pixels);
-		while (this->isDataSending) {}; //wait until all data wasn't sended
+		waitForSendedOrTimeout(SEND_TIMEOUT); //wait until all data wasn't sended
 	}
 	else 
 	{
@@ -331,11 +340,11 @@ void ILI9341::bufferDraw(uint16_t x, uint16_t y, uint16_t xsize, uint16_t ysize,
 			DMATXStart(buf, max_buf_size);
 			pixels -= max_buf_size;
 			buf += max_buf_size;
-			while (this->isDataSending) {}; //wait until all data wasn't sended
+			waitForSendedOrTimeout(SEND_TIMEOUT); //wait until all data wasn't sended
 		}
 		manualCsControl = 0;
 		DMATXStart(buf, pixels);
-		while (this->isDataSending) {}; //wait until all data wasn't sended
+		waitForSendedOrTimeout(SEND_TIMEOUT); //wait until all data wasn't sended
 	}
 	else 
 	{
@@ -426,7 +435,7 @@ void ILI9341::initDMAforSendSPI(const uint8_t singleColor)
 	dmaSpi5TxHandle.Init.PeriphDataAlignment = DMA_PDATAALIGN_HALFWORD;
 	dmaSpi5TxHandle.Init.MemDataAlignment = DMA_MDATAALIGN_HALFWORD;
 	dmaSpi5TxHandle.Init.Mode = DMA_NORMAL;
-	dmaSpi5TxHandle.Init.Priority = DMA_PRIORITY_HIGH;
+	dmaSpi5TxHandle.Init.Priority = DMA_PRIORITY_VERY_HIGH;
 	dmaSpi5TxHandle.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 	dmaSpi5TxHandle.Init.MemBurst = DMA_MBURST_SINGLE;
 	dmaSpi5TxHandle.Init.PeriphBurst = DMA_PBURST_SINGLE;
@@ -446,18 +455,18 @@ void ILI9341::DMATXStart(uint16_t* buffer, const uint16_t size)
 
 void ILI9341::DMATXInterrupt()
 {
-	if (!isOk && isDataSending) return;
+	if (!isOk) return;
 	HAL_DMA_IRQHandler(spi->hdmatx);
 }
 
 void ILI9341::DMATXCompleted()
 {
+	this->isDataSending = 0;
 	if (!isOk) return;
 	setSPIDataSize(SPI_DATASIZE_8BIT);
 	if (!manualCsControl) {
 		switchCs(1);   // CS=1;
 	}
-	this->isDataSending = 0;
 }
 
 uint8_t ILI9341::IsDataSending()

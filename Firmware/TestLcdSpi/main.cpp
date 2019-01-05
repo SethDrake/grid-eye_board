@@ -114,7 +114,7 @@ static void GPIO_Config()
 	GPIO_InitStructure.Speed = GPIO_SPEED_FAST;
 	HAL_GPIO_Init(BTN_PORT, &GPIO_InitStructure);
 
-	GPIO_InitStructure.Pin = LED_1_PIN | LED_2_PIN;
+	GPIO_InitStructure.Pin = GREEN_LED_PIN | RED_LED_PIN;
 	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
 	GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;
 	GPIO_InitStructure.Pull = GPIO_NOPULL;
@@ -206,6 +206,8 @@ int main()
      */
 
 	HAL_Init();
+
+	SCB->CCR |= SCB_CCR_DIV_0_TRP_Msk;
 	
 	SystemClock_Config();
 	GPIO_Config();
@@ -214,7 +216,7 @@ int main()
 
 	sdram.init();
 
-	display.setupHw(&lcdSpiHandle, SPI_BAUDRATEPRESCALER_8, GPIOD, GPIO_PIN_13, GPIOC, GPIO_PIN_2);
+	display.setupHw(&lcdSpiHandle, SPI_BAUDRATEPRESCALER_2, GPIOD, GPIO_PIN_13, GPIOC, GPIO_PIN_2);
 	display.init();
 	display.clear(COLOR_BLACK);
 
@@ -266,10 +268,10 @@ static void LED_Thread1(void const *argument)
   
 	for (;;)
 	{
-		HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_SET);
+		HAL_GPIO_WritePin(LED_PORT, GREEN_LED_PIN, GPIO_PIN_SET);
 		osDelay(2000);
 		
-		HAL_GPIO_WritePin(GPIOG, GPIO_PIN_13, GPIO_PIN_RESET);
+		HAL_GPIO_WritePin(LED_PORT, GREEN_LED_PIN, GPIO_PIN_RESET);
 		osThreadSuspend(LEDThread2Handle);
 		osDelay(2000);
 		
@@ -289,7 +291,7 @@ static void LED_Thread2(void const *argument)
   
 	for (;;)
 	{
-		HAL_GPIO_TogglePin(GPIOG, GPIO_PIN_14);
+		HAL_GPIO_TogglePin(LED_PORT, RED_LED_PIN);
 		osDelay(200);
 	}
 }
@@ -341,11 +343,11 @@ static void Draw_Thread(void const *argument)
 			{
 				cntr = 0;
 				const uint8_t hotDot = irSensor.getHotDotIndex();
-				hotDotX = hotDot / 8;
-				hotDotY = hotDot % 8;
+				hotDotY = hotDot / 8;
+				hotDotX = hotDot % 8;
 				const uint8_t coldDot = irSensor.getColdDotIndex();
-				coldDotX = coldDot / 8;
-				coldDotY = coldDot % 8;
+				coldDotY = coldDot / 8;
+				coldDotX = coldDot % 8;
 				cpuUsage = osGetCPUUsage();
 				maxTemp = irSensor.getMaxTemp();
 				minTemp = irSensor.getMinTemp();
@@ -361,7 +363,7 @@ static void Draw_Thread(void const *argument)
 
 			irSensor.setFbAddress(THERMAL_FB_ADDR);
 			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, vis_mode);
-			fbMain.printf(hotDotX * (THERMAL_RESOLUTION / 8), hotDotY * (THERMAL_RESOLUTION / 8), COLOR_RED, COLOR_TRANSP, "%u\x81", maxTemp);
+			fbMain.printf(hotDotX * (THERMAL_RESOLUTION / 8), hotDotY * (THERMAL_RESOLUTION / 8), COLOR_BLACK, COLOR_TRANSP, "%u\x81", maxTemp);
 			fbMain.printf(coldDotX * (THERMAL_RESOLUTION / 8), coldDotY * (THERMAL_RESOLUTION / 8), COLOR_GREEN, COLOR_TRANSP, "%u\x81", minTemp);
 			fbMain.redraw();
 
@@ -422,13 +424,48 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
 
 void vApplicationStackOverflowHook(TaskHandle_t xTask, const char *taskName)
 {
-	Error_Handler(42);
+	Error_Handler(42, nullptr);
 }
 
-void Error_Handler(const uint8_t source)
+void Error_Handler(const uint8_t reason, unsigned int * hardfault_args)
 {
-	uint8_t k = source;
-	while (true) {}
+	HAL_GPIO_WritePin(LED_PORT, GREEN_LED_PIN, GPIO_PIN_RESET);
+	HAL_GPIO_WritePin(LED_PORT, RED_LED_PIN, GPIO_PIN_SET);
+
+	fbMain.init(&display, SDRAM_DEVICE_ADDR, 320, 240, COLOR_WHITE, COLOR_BLUE);
+	fbMain.setWindowPos(0, 0);
+	fbMain.setOrientation(LANDSCAPE);
+	fbMain.clear(COLOR_BLUE);
+
+	if (reason == 0)
+	{
+		unsigned int stacked_r0 = ((unsigned long)hardfault_args[1]);
+		unsigned int stacked_r1 = ((unsigned long)hardfault_args[2]);
+		unsigned int stacked_r2 = ((unsigned long)hardfault_args[3]);
+		unsigned int stacked_r3 = ((unsigned long)hardfault_args[4]);
+		unsigned int stacked_r12 = ((unsigned long)hardfault_args[5]);
+		unsigned int stacked_lr = ((unsigned long)hardfault_args[6]);
+		unsigned int stacked_pc = ((unsigned long)hardfault_args[7]);
+		unsigned int stacked_psr = ((unsigned long)hardfault_args[8]);
+
+		fbMain.printf(30, 10, "HARD FAULT DETECTED --- SYSTEM STOPPED");
+		fbMain.printf(10, 25, "R0 = %x", stacked_r0);
+		fbMain.printf(10, 40, "R1 = %x", stacked_r1);
+		fbMain.printf(10, 55, "R2 = %x", stacked_r2);
+		fbMain.printf(10, 70, "R3 = %x", stacked_r3);
+		fbMain.printf(10, 85, "R12 = %x", stacked_r12);
+		fbMain.printf(10, 100, "LR [R14] = %x", stacked_lr);
+		fbMain.printf(10, 115, "PC [R15] = %x", stacked_pc);
+		fbMain.printf(10, 130, "PSR = %x", stacked_psr);
+		fbMain.printf(10, 220, "SCB_SHCSR = %x", SCB->SHCSR);
+	} else
+	{
+		fbMain.printf(30, 10, "STOP ERROR DETECTED --- REASON: %u");
+	}
+
+	fbMain.redraw();
+
+	while (true) {};
 }
 
 #ifdef  USE_FULL_ASSERT

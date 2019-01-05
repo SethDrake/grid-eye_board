@@ -9,6 +9,8 @@
 #define TFT_MAX_X	319
 #define TFT_MAX_Y	239
 
+#define SEND_TIMEOUT 10000000U
+
 class ILI9341 {
 public:
 	ILI9341();
@@ -67,6 +69,7 @@ private:
 	void DMATXStart(uint16_t* buffer, uint16_t size);
 	void switchCs(uint8_t BitVal);
 	void switchRs(uint8_t BitVal);
+	void waitForSendedOrTimeout(uint32_t timeout);
 };
 
 #define RED			0xf800

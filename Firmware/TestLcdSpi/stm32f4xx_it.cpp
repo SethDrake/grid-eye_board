@@ -1,41 +1,6 @@
-/**
-  ******************************************************************************
-  * @file    FreeRTOS/FreeRTOS_ThreadCreation/Src/stm32f4xx_it.c 
-  * @author  MCD Application Team
-  * @brief   Main Interrupt Service Routines.
-  *          This file provides template for all exceptions handler and 
-  *          peripherals interrupt service routine.
-  ******************************************************************************
-  * @attention
-  *
-  * <h2><center>&copy; COPYRIGHT(c) 2017 STMicroelectronics</center></h2>
-  *
-  * Licensed under MCD-ST Liberty SW License Agreement V2, (the "License");
-  * You may not use this file except in compliance with the License.
-  * You may obtain a copy of the License at:
-  *
-  *        http://www.st.com/software_license_agreement_liberty_v2
-  *
-  * Unless required by applicable law or agreed to in writing, software 
-  * distributed under the License is distributed on an "AS IS" BASIS, 
-  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-  * See the License for the specific language governing permissions and
-  * limitations under the License.
-  *
-  ******************************************************************************
-  */
-
-/* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx_it.h"
 #include "cmsis_os.h"
 #include "main.h"
-
-/* Private typedef -----------------------------------------------------------*/
-
-/* Private define ------------------------------------------------------------*/
-/* Private macro -------------------------------------------------------------*/
-/* Private function prototypes -----------------------------------------------*/
-/* Private functions ---------------------------------------------------------*/
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Exceptions Handlers                         */
@@ -72,7 +37,7 @@ void HardFault_Handler(void)
   */
 void MemManage_Handler(void)
 {
-	Error_Handler(1);
+	Error_Handler(1, nullptr);
 	while (1)
 	{
 	}
@@ -85,7 +50,7 @@ void MemManage_Handler(void)
   */
 void BusFault_Handler(void)
 {
-	Error_Handler(2);
+	Error_Handler(2, nullptr);
 	while (1)
 	{
 	}
@@ -98,7 +63,7 @@ void BusFault_Handler(void)
   */
 void UsageFault_Handler(void)
 {
-	Error_Handler(3);
+	Error_Handler(3, nullptr);
 	while (1)
 	{
 	}
@@ -126,32 +91,11 @@ void SysTick_Handler(void)
 
 void DMA2_Stream4_IRQHandler(void)
 {
-	if (display.IsDataSending()) {
-		display.DMATXInterrupt();
-	}
+	display.DMATXInterrupt();
 }
 
 void hard_fault_handler(unsigned int * hardfault_args)
 {
-	unsigned int stacked_r0;
-	unsigned int stacked_r1;
-	unsigned int stacked_r2;
-	unsigned int stacked_r3;
-	unsigned int stacked_r12;
-	unsigned int stacked_lr;
-	unsigned int stacked_pc;
-	unsigned int stacked_psr;
-
-	stacked_r0 = ((unsigned long) hardfault_args[0]);
-	stacked_r1 = ((unsigned long) hardfault_args[1]);
-	stacked_r2 = ((unsigned long) hardfault_args[2]);
-	stacked_r3 = ((unsigned long) hardfault_args[3]);
-
-	stacked_r12 = ((unsigned long) hardfault_args[4]);
-	stacked_lr = ((unsigned long) hardfault_args[5]);
-	stacked_pc = ((unsigned long) hardfault_args[6]);
-	stacked_psr = ((unsigned long) hardfault_args[7]);
-
-	Error_Handler(0);
+	Error_Handler(0, hardfault_args);
 }
 
