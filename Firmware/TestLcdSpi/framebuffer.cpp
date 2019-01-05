@@ -15,6 +15,8 @@ Framebuffer::Framebuffer()
 	this->bg_color = 0x0000;
 	this->font = Consolas8x14;
 	this->orientation = PORTRAIT;
+	this->startX = 0;
+	this->startY = 0;
 }
 
 Framebuffer::~Framebuffer()

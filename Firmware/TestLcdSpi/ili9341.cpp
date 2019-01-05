@@ -66,7 +66,7 @@ void ILI9341::setSPIDataSize(const uint32_t spiDataSize) {
 	__HAL_SPI_ENABLE(spi);
 }
 
-void ILI9341::init(void) {
+void ILI9341::init() {
 
 	setSPISpeed(SPI_BAUDRATEPRESCALER_16);
 	switchCs(0);
@@ -201,7 +201,7 @@ void ILI9341::init(void) {
 }
 
 
-void ILI9341::enable(short on) {
+void ILI9341::enable(const short on) {
 	switchCs(0);
 	if (on == 0) {
 		sendCmd(ILI9341_DISPLAYOFF_REG);
@@ -215,7 +215,7 @@ void ILI9341::enable(short on) {
 }
 
 
-void ILI9341::sleep(short on){
+void ILI9341::sleep(const short on){
 	switchCs(0);
 	if (on == 0) {
 		sendCmd(ILI9341_SLEEP_OUT_REG);
@@ -231,19 +231,19 @@ void ILI9341::clear(const uint16_t color)
 	fillScreen(TFT_MIN_X, TFT_MIN_Y, TFT_MAX_X, TFT_MAX_Y, color);
 }
 
-void ILI9341::setCol(uint16_t StartCol, uint16_t EndCol)
+void ILI9341::setCol(const uint16_t StartCol, const uint16_t EndCol)
 {
 	sendCmd(ILI9341_COLADDRSET_REG);    // Column Command address
 	sendWords(StartCol, EndCol);
 }
 
-void ILI9341::setPage(uint16_t StartPage, uint16_t EndPage)
+void ILI9341::setPage(const uint16_t StartPage, const uint16_t EndPage)
 {
 	sendCmd(ILI9341_PAGEADDRSET_REG);   // Page Command address
 	sendWords(StartPage, EndPage);
 }
 
-void ILI9341::setWindow(uint16_t startX, uint16_t startY, uint16_t stopX, uint16_t stopY)
+void ILI9341::setWindow(const uint16_t startX, const uint16_t startY, const uint16_t stopX, const uint16_t stopY)
 {
 	if (isLandscape)
 	{
@@ -276,7 +276,7 @@ void ILI9341::waitForSendedOrTimeout(uint32_t timeout)
 	this->isDataSending = 0;
 }
 
-void ILI9341::fillScreen(uint16_t xstart, uint16_t ystart, uint16_t xstop, uint16_t ystop, uint16_t color)
+void ILI9341::fillScreen(const uint16_t xstart, const uint16_t ystart, const uint16_t xstop, const uint16_t ystop, uint16_t color)
 {
 	while (this->isDataSending){}; //wait until all data wasn't sended
 	const uint16_t max_buf_size = 65535;
@@ -312,7 +312,7 @@ void ILI9341::fillScreen(uint16_t xstart, uint16_t ystart, uint16_t xstop, uint1
 	}
 }
 
-void ILI9341::pixelDraw(uint16_t xpos, uint16_t ypos, uint16_t color)
+void ILI9341::pixelDraw(const uint16_t xpos, const uint16_t ypos, const uint16_t color)
 {
 	while (this->isDataSending){}; //wait until all data wasn't sended
 	switchCs(0);   // CS=0;
@@ -322,7 +322,7 @@ void ILI9341::pixelDraw(uint16_t xpos, uint16_t ypos, uint16_t color)
 	switchCs(1);   // CS=1;
 }
 
-void ILI9341::bufferDraw(uint16_t x, uint16_t y, uint16_t xsize, uint16_t ysize, uint16_t* buf)
+void ILI9341::bufferDraw(const uint16_t x, const uint16_t y, const uint16_t xsize, const uint16_t ysize, uint16_t* buf)
 {
 	while (this->isDataSending) {}; //wait until all data wasn't sended
 	const uint16_t max_buf_size = 65535;
@@ -358,12 +358,12 @@ void ILI9341::bufferDraw(uint16_t x, uint16_t y, uint16_t xsize, uint16_t ysize,
 	while (this->isDataSending); //wait until all data wasn't sended
 }
 
-void ILI9341::lineDraw(uint16_t ypos, uint16_t* line,  uint32_t size)
+void ILI9341::lineDraw(const uint16_t ypos, uint16_t* line, const uint32_t size)
 {
 	bufferDraw(0, ypos, size, 1, line);
 }
 
-void ILI9341::drawBorder(uint16_t xpos, uint16_t ypos, uint16_t width, uint16_t height, uint16_t bw, uint16_t color)
+void ILI9341::drawBorder(const uint16_t xpos, const uint16_t ypos, const uint16_t width, const uint16_t height, const uint16_t bw, const uint16_t color)
 {
 	fillScreen(xpos, ypos, xpos + bw, ypos + height, color);
 	fillScreen(xpos + bw, ypos + height - bw, xpos + width, ypos + height, color);
@@ -485,23 +485,23 @@ bool ILI9341::isReady()
 	return this->isOk;
 }
 
-void ILI9341::setDisableDMA(uint8_t isDisable)
+void ILI9341::setDisableDMA(const uint8_t isDisable)
 {
 	this->disableDMA = isDisable; 
 }
 
 
-void ILI9341::setColor(uint16_t color, uint16_t bgColor)
+void ILI9341::setColor(const uint16_t color, const uint16_t bgColor)
 {
 	this->color = color;
 	this->bgColor = bgColor;
 }
 
-uint16_t ILI9341::RGB888ToRGB565(uint8_t r, uint8_t g, uint8_t b)
+uint16_t ILI9341::RGB888ToRGB565(const uint8_t r, const uint8_t g, const uint8_t b)
 {
-	uint16_t r5 = (uint16_t)((r * 249 + 1014) >> 11);
-	uint16_t g6 = (uint16_t)((g * 253 + 505) >> 10);
-	uint16_t b5 = (uint16_t)((b * 249 + 1014) >> 11);
+	const uint16_t r5 = (uint16_t)((r * 249 + 1014) >> 11);
+	const uint16_t g6 = (uint16_t)((g * 253 + 505) >> 10);
+	const uint16_t b5 = (uint16_t)((b * 249 + 1014) >> 11);
 	return (uint16_t)(r5 << 11 | g6 << 5 | b5);
 }
 

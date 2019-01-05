@@ -16,7 +16,7 @@ public:
 	ILI9341();
 	~ILI9341();
 	void setupHw(SPI_HandleTypeDef* spi, const uint32_t spiPrescaler, GPIO_TypeDef* rsPort, const uint16_t rsPin, GPIO_TypeDef* csPort, const uint16_t csPin);
-	void init(void);
+	void init();
 	void enable(short on);
 	void sleep(short on);
 	void clear(uint16_t color);
@@ -31,10 +31,10 @@ public:
 	void resetIsDataSending();
 	void setDisableDMA(uint8_t isDisable);
 	void setColor(uint16_t color, uint16_t bgColor);
-	void setLandscape(void);
-	void setPortrait(void);
+	void setLandscape();
+	void setPortrait();
 	uint16_t RGB888ToRGB565(uint8_t r, uint8_t g, uint8_t b);
-	bool isReady(void);
+	bool isReady();
 	void DMATXCompleted();
 	
 protected:

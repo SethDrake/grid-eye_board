@@ -97,5 +97,6 @@ void DMA2_Stream4_IRQHandler(void)
 void hard_fault_handler(unsigned int * hardfault_args)
 {
 	Error_Handler(0, hardfault_args);
+	while(true);
 }
 

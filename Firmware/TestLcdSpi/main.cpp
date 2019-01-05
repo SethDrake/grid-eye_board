@@ -1,8 +1,6 @@
-
 #include "main.h"
 #include "sdram.h"
 #include "thermal.h"
-#include "delay.h"
 
 SPI_HandleTypeDef lcdSpiHandle;
 I2C_HandleTypeDef i2cHandle;
@@ -242,26 +240,19 @@ int main()
 	osThreadDef(READ_KEYS, ReadKeys_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(DRAW, Draw_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE + 128);
   
-	LEDThread1Handle = osThreadCreate(osThread(LED1), NULL);
-	LEDThread2Handle = osThreadCreate(osThread(LED2), NULL);
-	GridEyeThreadHandle = osThreadCreate(osThread(GRID_EYE), NULL);
-	ReadKeysThreadHandle = osThreadCreate(osThread(READ_KEYS), NULL);
-	DrawThreadHandle = osThreadCreate(osThread(DRAW), NULL);
+	LEDThread1Handle = osThreadCreate(osThread(LED1), nullptr);
+	LEDThread2Handle = osThreadCreate(osThread(LED2), nullptr);
+	GridEyeThreadHandle = osThreadCreate(osThread(GRID_EYE), nullptr);
+	ReadKeysThreadHandle = osThreadCreate(osThread(READ_KEYS), nullptr);
+	DrawThreadHandle = osThreadCreate(osThread(DRAW), nullptr);
   
 	/* Start scheduler */
 	osKernelStart();
 
 	  /* We should never get here as control is now taken by the scheduler */
-	for (;;)
-		;
+	for (;;);
 }
 
-
-/**
-  * @brief  Toggle LED1
-  * @param  thread not used
-  * @retval None
-  */
 static void LED_Thread1(void const *argument)
 {
 	(void) argument;
@@ -279,14 +270,8 @@ static void LED_Thread1(void const *argument)
 	}
 }
 
-/**
-  * @brief  Toggle LED2 thread
-  * @param  argument not used
-  * @retval None
-  */
 static void LED_Thread2(void const *argument)
 {
-	uint32_t count;
 	(void) argument;
   
 	for (;;)
@@ -322,7 +307,6 @@ static void Draw_Thread(void const *argument)
 	uint8_t hotDotX = 0;
 	uint8_t hotDotY = 0;
 
-	uint16_t cpuUsage = 0;
 	const uint8_t hpUpdDelay = 6;
 	uint8_t cntr = hpUpdDelay;
 	bool oneTimeActionDone = false;
@@ -348,9 +332,9 @@ static void Draw_Thread(void const *argument)
 				const uint8_t coldDot = irSensor.getColdDotIndex();
 				coldDotY = coldDot / 8;
 				coldDotX = coldDot % 8;
-				cpuUsage = osGetCPUUsage();
 				maxTemp = irSensor.getMaxTemp();
 				minTemp = irSensor.getMinTemp();
+				const uint16_t cpuUsage = osGetCPUUsage();
 
 				fbInfo.printf(4, 200, "VM: %u", vis_mode);
 				fbInfo.printf(4, 230, "CPU: %u%%", cpuUsage);
@@ -439,14 +423,14 @@ void Error_Handler(const uint8_t reason, unsigned int * hardfault_args)
 
 	if (reason == 0)
 	{
-		unsigned int stacked_r0 = ((unsigned long)hardfault_args[1]);
-		unsigned int stacked_r1 = ((unsigned long)hardfault_args[2]);
-		unsigned int stacked_r2 = ((unsigned long)hardfault_args[3]);
-		unsigned int stacked_r3 = ((unsigned long)hardfault_args[4]);
-		unsigned int stacked_r12 = ((unsigned long)hardfault_args[5]);
-		unsigned int stacked_lr = ((unsigned long)hardfault_args[6]);
-		unsigned int stacked_pc = ((unsigned long)hardfault_args[7]);
-		unsigned int stacked_psr = ((unsigned long)hardfault_args[8]);
+		const unsigned int stacked_r0 = ((unsigned long)hardfault_args[1]);
+		const unsigned int stacked_r1 = ((unsigned long)hardfault_args[2]);
+		const unsigned int stacked_r2 = ((unsigned long)hardfault_args[3]);
+		const unsigned int stacked_r3 = ((unsigned long)hardfault_args[4]);
+		const unsigned int stacked_r12 = ((unsigned long)hardfault_args[5]);
+		const unsigned int stacked_lr = ((unsigned long)hardfault_args[6]);
+		const unsigned int stacked_pc = ((unsigned long)hardfault_args[7]);
+		const unsigned int stacked_psr = ((unsigned long)hardfault_args[8]);
 
 		fbMain.printf(30, 10, "HARD FAULT DETECTED --- SYSTEM STOPPED");
 		fbMain.printf(10, 25, "R0 = %x", stacked_r0);
@@ -458,14 +442,13 @@ void Error_Handler(const uint8_t reason, unsigned int * hardfault_args)
 		fbMain.printf(10, 115, "PC [R15] = %x", stacked_pc);
 		fbMain.printf(10, 130, "PSR = %x", stacked_psr);
 		fbMain.printf(10, 220, "SCB_SHCSR = %x", SCB->SHCSR);
-	} else
+	} 
+	else
 	{
 		fbMain.printf(30, 10, "STOP ERROR DETECTED --- REASON: %u");
 	}
 
 	fbMain.redraw();
-
-	while (true) {};
 }
 
 #ifdef  USE_FULL_ASSERT
@@ -480,6 +463,12 @@ void assert_failed(uint8_t* file, uint32_t line)
 {
   /* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
+
+	Error_Handler(7, nullptr);
+	fbMain.clear(COLOR_BLUE);
+	fbMain.printf(1, 10, "Wrong parameters value:");
+	fbMain.printf(1, 25, "file %s on line %d", file, line);
+	fbMain.redraw();
 
   /* Infinite loop */
 	while (1)

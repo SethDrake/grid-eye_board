@@ -5,7 +5,6 @@
 /* Includes ------------------------------------------------------------------*/
 #include <../CMSIS_RTOS/cmsis_os.h>
 #include <stm32f4xx_hal.h>
-#include "sdram.h"
 #include "ili9341.h"
 #include "framebuffer.h"
 #include "cpu_utils.h"
