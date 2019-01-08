@@ -1,5 +1,8 @@
 #include "ov7670.h"
 #include "delay.h"
+#include <cstring>
+#include "main.h"
+#include "sdram.h"
 
 OV7670::OV7670()
 {
@@ -115,25 +118,25 @@ void OV7670::PclkInterrupt()
 {
 	if (!isCaptureInProgress) return;
 	const bool isHrefActual = (hrefPort->IDR & hrefPin) != 0;
-	//const bool isHrefActual = (HAL_GPIO_ReadPin(hrefPort, hrefPin) == GPIO_PIN_SET);
 	if (isHrefActual)
 	{
 		if (!isHrefHigh)
 		{
 			isHrefHigh = true;
 			linesCount++;
-			bytesCount = 0;
 		}
 		//read byte from camera
 		uint8_t camData = (GPIOA->IDR & 0xF8) >> 3;
 		camData |= (GPIOD->IDR & 0x1C) << 3;
-		*(volatile uint8_t *)this->capturePtr = camData;
-		this->capturePtr++;
+		line[bytesCount] = camData;
 		bytesCount++;
 	}
-	else //href is down
+	else //href is down - end if line
 	{
 		isHrefHigh = false;
+		memcpy((uint8_t *)this->capturePtr, (const uint8_t*)&line, bytesCount);
+		this->capturePtr += bytesCount;
+		bytesCount = 0;
 		if (linesCount >= CAM_FRAME_HEIGHT)
 		{
 			stopCapture();

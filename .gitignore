@@ -56,3 +56,8 @@ eagle.epf
 /Firmware/T-Scan.VC.db
 /Firmware/Debug
 /Firmware/VisualGDB
+/Firmware/TestLcdSpi/Debug
+/Firmware/TestLcdSpi/VisualGDB
+/Firmware/TestLcdSpi/TestLcdSpi.VC.db
+/Firmware/TestLcdSpi/.vs/TestLcdSpi/v14/*.suo
+/Firmware/TestLcdSpi/TestLcdSpi.VC.VC.opendb

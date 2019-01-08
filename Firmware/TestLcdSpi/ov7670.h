@@ -41,6 +41,7 @@ private:
 	uint32_t fb_addr;
 	uint32_t capturePtr;
 	volatile uint16_t cameraID;
+	volatile uint8_t line[CAM_FRAME_WIDTH * 3];
 };
 
 /* Registers */

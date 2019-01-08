@@ -254,7 +254,7 @@ static void TIM_Config()
 	GPIO_InitStruct.Alternate = GPIO_AF3_TIM10;
 	HAL_GPIO_Init(CAM_XCLK_PORT, &GPIO_InitStruct);
 
-	const uint16_t period = (SystemCoreClock / 5000000); // 12MHz
+	const uint16_t period = (SystemCoreClock / 8000000); // 12MHz
 
 	tim10Handle.Instance = TIM10;
 	tim10Handle.Init.Period = period - 1;
@@ -323,13 +323,19 @@ int main()
 
 	camera.init(&ci2cHandle, CAM_HREF_PORT, CAM_HREF_PIN, CAM_RESET_PORT, CAM_RESET_PIN, CAMERA_FB_ADDR);
 
+	camera.captureFrame();
+
+	/*while(!camera.isFrameReady())
+	{
+	}*/
+
 	/* Thread 1 definition */
 	osThreadDef(LED1, LED_Thread1, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(LED2, LED_Thread2, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(GRID_EYE, GridEye_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(READ_KEYS, ReadKeys_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-	osThreadDef(DRAW, Draw_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE + 128);
-	osThreadDef(CAMERA, Camera_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE + 128);
+	osThreadDef(DRAW, Draw_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE + 1024);
+	osThreadDef(CAMERA, Camera_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE + 1024);
   
 	LEDThread1Handle = osThreadCreate(osThread(LED1), nullptr);
 	LEDThread2Handle = osThreadCreate(osThread(LED2), nullptr);
@@ -405,7 +411,7 @@ static void Draw_Thread(void const *argument)
 
 	for (;;)
 	{
-		if (sensorReady)
+		if (sensorReady && camera.isFrameReady())
 		{
 			const TickType_t xTime1 = xTaskGetTickCount();
 			if (!oneTimeActionDone)
@@ -438,16 +444,16 @@ static void Draw_Thread(void const *argument)
 			cntr++;
 
 			irSensor.setFbAddress(THERMAL_FB_ADDR);
-			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, vis_mode);
+			/*irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, vis_mode);
 			fbMain.printf(hotDotX * (THERMAL_RESOLUTION / 8), hotDotY * (THERMAL_RESOLUTION / 8), COLOR_BLACK, COLOR_TRANSP, "%u\x81", maxTemp);
 			fbMain.printf(coldDotX * (THERMAL_RESOLUTION / 8), coldDotY * (THERMAL_RESOLUTION / 8), COLOR_GREEN, COLOR_TRANSP, "%u\x81", minTemp);
-			fbMain.redraw();
+			fbMain.redraw();*/
 
 			const TickType_t xTime2 = xTaskGetTickCount();
 			xExecutionTime = xTime2 - xTime1;
 		}
 
-		osDelay(50);
+		osDelay(75);
 	}
 }
 
@@ -459,10 +465,10 @@ static void Camera_Thread(void const *argument)
 	{
 		if (camera.isFrameReady())
 		{
-			//fbCamera.redraw();
-			//camera.captureFrame();
+			fbCamera.redraw();
+			camera.captureFrame();
 		}
-		osDelay(150);
+		osDelay(70);
 	}
 }
 
