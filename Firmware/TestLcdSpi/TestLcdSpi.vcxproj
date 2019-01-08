@@ -36,7 +36,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|VisualGDB'">
     <ClCompile>
       <AdditionalIncludeDirectories>C:/SysGCC/arm-eabi/arm-eabi/include/c++/7.2.0;C:/SysGCC/arm-eabi/arm-eabi/include;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>DEBUG=1;DEBUG_DEFAULT_INTERRUPT_HANDLERS=1;USE_FULL_ASSERT;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG=1;DEBUG_DEFAULT_INTERRUPT_HANDLERS=1;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
       <Optimization>O0</Optimization>
     </ClCompile>
     <Link>
@@ -159,6 +159,7 @@
     <ClCompile Include="delay.cpp" />
     <ClCompile Include="framebuffer.cpp" />
     <ClCompile Include="ili9341.cpp" />
+    <ClCompile Include="ov7670.cpp" />
     <ClCompile Include="sdram.cpp" />
     <ClCompile Include="stm32f4xx_it.cpp" />
     <ClCompile Include="system_stm32f4xx.c" />
@@ -302,6 +303,7 @@
     <ClInclude Include="ili9341.h" />
     <ClInclude Include="main.h" />
     <ClInclude Include="mini_fonts.h" />
+    <ClInclude Include="ov7670.h" />
     <ClInclude Include="sdram.h" />
     <ClInclude Include="stm32f4xx_hal_conf.h" />
     <ClInclude Include="stm32f4xx_it.h" />

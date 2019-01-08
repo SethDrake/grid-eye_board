@@ -51,7 +51,7 @@ uint8_t SDRAM::init()
 	sdramHandle.Init.ReadPipeDelay = FMC_SDRAM_RPIPE_DELAY_1;
 
 	/* SDRAM controller initialization */
-	setupHw(&sdramHandle, (void *)NULL);
+	setupHw(&sdramHandle, nullptr);
 	if (HAL_SDRAM_Init(&sdramHandle, &timing) != HAL_OK)
 	{
 		sdramstatus = SDRAM_ERROR;
@@ -63,7 +63,7 @@ uint8_t SDRAM::init()
 		/* SDRAM initialization sequence */
 		initSequence(REFRESH_COUNT);
 
-		HAL_SDRAM_WriteProtection_Disable(&sdramHandle);
+		//HAL_SDRAM_WriteProtection_Disable(&sdramHandle);
 	}
 
 	return sdramstatus;
@@ -73,7 +73,7 @@ void SDRAM::setupHw(SDRAM_HandleTypeDef  *hsdram, void *Params)
 {
 	GPIO_InitTypeDef GPIO_InitStructure;
 
-	if (hsdram != (SDRAM_HandleTypeDef  *)NULL)
+	if (hsdram != nullptr)
 	{
 		/* Enable FMC clock */
 		__HAL_RCC_FMC_CLK_ENABLE();
@@ -185,8 +185,6 @@ void SDRAM::setupHw(SDRAM_HandleTypeDef  *hsdram, void *Params)
 
 void SDRAM::initSequence(const uint32_t refreshCount)
 {
-	__IO uint32_t tmpmrd = 0;
-
 	/* Step 1:  Configure a clock configuration enable command */
 	command.CommandMode = FMC_SDRAM_CMD_CLK_ENABLE;
 	command.CommandTarget = FMC_SDRAM_CMD_TARGET_BANK2;
@@ -219,9 +217,9 @@ void SDRAM::initSequence(const uint32_t refreshCount)
 	HAL_SDRAM_SendCommand(&sdramHandle, &command, SDRAM_TIMEOUT);
 
 	/* Step 5: Program the external memory mode register */
-	tmpmrd = (uint32_t)SDRAM_MODEREG_BURST_LENGTH_1 |
+	__IO uint32_t tmpmrd = (uint32_t)SDRAM_MODEREG_BURST_LENGTH_1 |
 		SDRAM_MODEREG_BURST_TYPE_SEQUENTIAL |
-		SDRAM_MODEREG_CAS_LATENCY_3 |
+		SDRAM_MODEREG_CAS_LATENCY_2 |
 		SDRAM_MODEREG_OPERATING_MODE_STANDARD |
 		SDRAM_MODEREG_WRITEBURST_MODE_SINGLE;
 

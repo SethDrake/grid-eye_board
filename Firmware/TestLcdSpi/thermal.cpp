@@ -9,6 +9,10 @@ IRSensor::IRSensor()
 	this->maxTemp = 0;
 	this->fbSizeX = 0;
 	this->fbSizeY = 0;
+	this->colorScheme = nullptr;
+	this->i2cHandle = nullptr;
+	this->hotDotIndex = 0;
+	this->coldDotIndex = 0;
 }
 
 IRSensor::~IRSensor()
@@ -29,8 +33,8 @@ float IRSensor::rawHLtoTemp(const uint8_t rawL, const uint8_t rawH, const float 
 void IRSensor::init(I2C_HandleTypeDef* i2cHandle, const uint32_t fb_addr, const uint16_t fbSizeX, const uint16_t fbSizeY, const uint8_t* colorScheme)
 {
 	this->i2cHandle = i2cHandle;
-	//writeData(GRID_EYE_ADDR, 0x00, 0x00); //set normal mode
-	//writeData(GRID_EYE_ADDR, 0x02, 0x00); //set 10 FPS mode
+	writeData(GRID_EYE_ADDR, 0x00, 0x00); //set normal mode
+	writeData(GRID_EYE_ADDR, 0x02, 0x00); //set 10 FPS mode
 	writeData(GRID_EYE_ADDR, 0x03, 0x00); //disable INT
 	setFbAddress(fb_addr);
 	this->setColorScheme(colorScheme);
@@ -85,7 +89,7 @@ void IRSensor::readImage()
 		taddr++;
 		this->dots[i] = this->rawHLtoTemp(rawL, rawH, TEMP_COEFF);
 	}
-	this->findMinAndMaxTemp();
+	findMinAndMaxTemp();
 }
 
 float* IRSensor::getTempMap()

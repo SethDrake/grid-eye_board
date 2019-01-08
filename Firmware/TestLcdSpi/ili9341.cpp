@@ -71,10 +71,10 @@ void ILI9341::init() {
 	setSPISpeed(SPI_BAUDRATEPRESCALER_16);
 	switchCs(0);
 
-	/*sendCmd(ILI9341_SOFT_RESET_REG); //software reset
+	sendCmd(ILI9341_SOFT_RESET_REG); //software reset
 	DelayManager::DelayMs(15);
 	sendCmd(ILI9341_DISPLAYOFF_REG); // display off
-	DelayManager::DelayMs(15);*/
+	DelayManager::DelayMs(15);
 
 	sendCmd(0xCA);
 	sendData(0xC3);
@@ -141,8 +141,6 @@ void ILI9341::init() {
 	sendCmd(ILI9341_ENABLE_3G_REG);    	// 3Gamma Function Disable
 	sendData(0x00);
 
-	DelayManager::DelayMs(200);
-
 	sendCmd(ILI9341_GAMMASET_REG);    	//Gamma curve selected
 	sendData(0x01);
 
@@ -182,18 +180,12 @@ void ILI9341::init() {
 	sendData(0x0F);
 
 	sendCmd(ILI9341_SLEEP_OUT_REG);    	//Exit Sleep
-	DelayManager::DelayMs(200);
+	DelayManager::DelayMs(100);
 	sendCmd(ILI9341_DISPLAYON_REG);   	//Display on
-	DelayManager::DelayMs(200);
+	DelayManager::DelayMs(100);
 
 	//sendCmd(ILI9341_WRITEBRIGHT_REG);   	//Change brightness
 	//sendData(0x50);
-	
-	sendCmd(ILI9341_MEMORYWRITE_REG);
-	for(uint16_t i = 0; i < 1000; i++)
-	{
-		sendWord(0x0000);
-	}
 
 	switchCs(1);
 	setSPISpeed(this->spiPrescaler);

@@ -26,11 +26,11 @@ public:
 	float getMinTemp();
 	uint8_t getHotDotIndex();
 	uint8_t getColdDotIndex();
-	uint16_t temperatureToRGB565(float temperature, float minTemp, float maxTemp);
+	void findMinAndMaxTemp();
 	void visualizeImage(uint8_t resX, uint8_t resY, const uint8_t method);
 	void drawGradient(Framebuffer* fb, uint8_t startX, uint8_t startY, uint8_t stopX, uint8_t stopY);
 protected:
-	void findMinAndMaxTemp();
+	uint16_t temperatureToRGB565(float temperature, float minTemp, float maxTemp);
 	uint16_t rgb2color(uint8_t R, uint8_t G, uint8_t B);
 	uint8_t calculateRGB(uint8_t rgb1, uint8_t rgb2, float t1, float step, float t);
 	void writeData(uint8_t addr, uint8_t reg, uint8_t value);
@@ -49,7 +49,7 @@ private:
 	float maxTemp;
 	float rawHLtoTemp(uint8_t rawL, uint8_t rawH, float coeff);
 	const float minTempCorr = -0.5;
-	const float maxTempCorr = + 0.5;
+	const float maxTempCorr = 0.5;
 };
 
 

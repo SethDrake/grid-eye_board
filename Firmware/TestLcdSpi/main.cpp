@@ -3,29 +3,35 @@
 #include "thermal.h"
 
 SPI_HandleTypeDef lcdSpiHandle;
-I2C_HandleTypeDef i2cHandle;
+I2C_HandleTypeDef ti2cHandle;
+I2C_HandleTypeDef ci2cHandle;
+TIM_HandleTypeDef tim10Handle;
 
 SDRAM sdram;
 ILI9341 display;
+OV7670 camera;
 Framebuffer fbMain;
 Framebuffer fbInfo;
+Framebuffer fbCamera;
 IRSensor irSensor;
 
 __IO uint8_t vis_mode = 1;
 __IO uint8_t sensorReady = 0;
 
-osThreadId LEDThread1Handle, LEDThread2Handle, GridEyeThreadHandle, ReadKeysThreadHandle, DrawThreadHandle;
+osThreadId LEDThread1Handle, LEDThread2Handle, GridEyeThreadHandle, ReadKeysThreadHandle, DrawThreadHandle, CameraThreadHandle;
 
 static void LED_Thread1(void const *argument);
 static void LED_Thread2(void const *argument);
 static void GridEye_Thread(void const *argument);
 static void ReadKeys_Thread(void const *argument);
 static void Draw_Thread(void const *argument);
+static void Camera_Thread(void const *argument);
 
 static void SystemClock_Config();
 static void GPIO_Config();
 static void SPI_Config();
 static void I2C_Config();
+static void TIM_Config();
 
 
 /**
@@ -100,9 +106,11 @@ static void SystemClock_Config()
 static void GPIO_Config()
 {
 	__GPIOA_CLK_ENABLE();
+	__GPIOB_CLK_ENABLE();
 	__GPIOC_CLK_ENABLE();
 	__GPIOD_CLK_ENABLE();
 	__GPIOG_CLK_ENABLE();
+	__GPIOF_CLK_ENABLE();
 
 	GPIO_InitTypeDef GPIO_InitStructure;
 
@@ -117,6 +125,24 @@ static void GPIO_Config()
 	GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;
 	GPIO_InitStructure.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(LED_PORT, &GPIO_InitStructure);
+
+	GPIO_InitStructure.Pin = CAM_PCLK_PIN;
+	GPIO_InitStructure.Mode = GPIO_MODE_IT_FALLING;
+	GPIO_InitStructure.Pull = GPIO_NOPULL;
+	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	HAL_GPIO_Init(CAM_PCLK_PORT, &GPIO_InitStructure);
+	
+	GPIO_InitStructure.Pin = CAM_HREF_PIN;
+	GPIO_InitStructure.Mode = GPIO_MODE_INPUT;
+	GPIO_InitStructure.Pull = GPIO_NOPULL;
+	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	HAL_GPIO_Init(CAM_HREF_PORT, &GPIO_InitStructure);
+
+	GPIO_InitStructure.Pin = CAM_RESET_PIN;
+	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
+	GPIO_InitStructure.Pull = GPIO_NOPULL;
+	GPIO_InitStructure.Speed = GPIO_SPEED_LOW;
+	HAL_GPIO_Init(CAM_RESET_PORT, &GPIO_InitStructure);
 }
 
 static void SPI_Config()
@@ -151,23 +177,23 @@ static void SPI_Config()
 
 static void I2C_Config()
 {
-	if (HAL_I2C_GetState(&i2cHandle) == HAL_I2C_STATE_RESET)
+	if (HAL_I2C_GetState(&ti2cHandle) == HAL_I2C_STATE_RESET)
 	{
-		i2cHandle.Instance = THERMAL_I2C;
-		i2cHandle.Init.ClockSpeed = 400000;
-		i2cHandle.Init.DutyCycle = I2C_DUTYCYCLE_2;
-		i2cHandle.Init.OwnAddress1 = 0;
-		i2cHandle.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
-		i2cHandle.Init.DualAddressMode = I2C_DUALADDRESS_DISABLED;
-		i2cHandle.Init.OwnAddress2 = 0;
-		i2cHandle.Init.GeneralCallMode = I2C_GENERALCALL_DISABLED;
-		i2cHandle.Init.NoStretchMode = I2C_NOSTRETCH_DISABLED;
+		ti2cHandle.Instance = THERMAL_I2C;
+		ti2cHandle.Init.ClockSpeed = 500000;
+		ti2cHandle.Init.DutyCycle = I2C_DUTYCYCLE_2;
+		ti2cHandle.Init.OwnAddress1 = 0;
+		ti2cHandle.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+		ti2cHandle.Init.DualAddressMode = I2C_DUALADDRESS_DISABLED;
+		ti2cHandle.Init.OwnAddress2 = 0;
+		ti2cHandle.Init.GeneralCallMode = I2C_GENERALCALL_DISABLED;
+		ti2cHandle.Init.NoStretchMode = I2C_NOSTRETCH_DISABLED;
 
 		__HAL_RCC_GPIOC_CLK_ENABLE();
 		__HAL_RCC_GPIOA_CLK_ENABLE();
 
 		GPIO_InitTypeDef  GPIO_InitStruct;
-		/* Configure I2C Tx as alternate function  */
+		/* Configure I2C3 SCL as alternate function  */
 		GPIO_InitStruct.Pin = GPIO_PIN_8;
 		GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
 		GPIO_InitStruct.Pull = GPIO_NOPULL;
@@ -175,23 +201,79 @@ static void I2C_Config()
 		GPIO_InitStruct.Alternate = GPIO_AF4_I2C3;
 		HAL_GPIO_Init(GPIOA, &GPIO_InitStruct);
 
-		/* Configure I2C Rx as alternate function  */
+		/* Configure I2C3 SDA as alternate function  */
 		GPIO_InitStruct.Pin = GPIO_PIN_9;
 		HAL_GPIO_Init(GPIOC, &GPIO_InitStruct);
 
-
-		/* Configure the Discovery I2Cx peripheral -------------------------------*/
-		/* Enable I2C3 clock */
 		__HAL_RCC_I2C3_CLK_ENABLE();
-
-		/* Force the I2C Peripheral Clock Reset */
 		__HAL_RCC_I2C3_FORCE_RESET();
-
-		/* Release the I2C Peripheral Clock Reset */
 		__HAL_RCC_I2C3_RELEASE_RESET();
-
-		HAL_I2C_Init(&i2cHandle);
+		HAL_I2C_Init(&ti2cHandle);
 	}
+	
+	if (HAL_I2C_GetState(&ci2cHandle) == HAL_I2C_STATE_RESET)
+	{
+		ci2cHandle.Instance = CAMERA_I2C;
+		ci2cHandle.Init.ClockSpeed = 100000;
+		ci2cHandle.Init.DutyCycle = I2C_DUTYCYCLE_2;
+		ci2cHandle.Init.OwnAddress1 = 0;
+		ci2cHandle.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
+		ci2cHandle.Init.DualAddressMode = I2C_DUALADDRESS_DISABLED;
+		ci2cHandle.Init.OwnAddress2 = 0;
+		ci2cHandle.Init.GeneralCallMode = I2C_GENERALCALL_DISABLED;
+		ci2cHandle.Init.NoStretchMode = I2C_NOSTRETCH_DISABLED;
+
+		__HAL_RCC_GPIOB_CLK_ENABLE();
+
+		GPIO_InitTypeDef  GPIO_InitStruct;
+		/* Configure I2C1 SCL & SDA as alternate function  */
+		GPIO_InitStruct.Pin = GPIO_PIN_8 | GPIO_PIN_7;
+		GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
+		GPIO_InitStruct.Pull = GPIO_PULLUP;
+		GPIO_InitStruct.Speed = GPIO_SPEED_FAST;
+		GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
+		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
+
+		__HAL_RCC_I2C1_CLK_ENABLE();
+		__HAL_RCC_I2C1_FORCE_RESET();
+		__HAL_RCC_I2C1_RELEASE_RESET();
+		HAL_I2C_Init(&ci2cHandle);
+	}
+}
+
+static void TIM_Config()
+{
+	__HAL_RCC_GPIOF_CLK_ENABLE();
+	__HAL_RCC_TIM10_CLK_ENABLE();
+
+	GPIO_InitTypeDef  GPIO_InitStruct;
+	GPIO_InitStruct.Pin = CAM_XCLK_PIN;
+	GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
+	GPIO_InitStruct.Pull = GPIO_NOPULL;
+	GPIO_InitStruct.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
+	GPIO_InitStruct.Alternate = GPIO_AF3_TIM10;
+	HAL_GPIO_Init(CAM_XCLK_PORT, &GPIO_InitStruct);
+
+	const uint16_t period = (SystemCoreClock / 5000000); // 12MHz
+
+	tim10Handle.Instance = TIM10;
+	tim10Handle.Init.Period = period - 1;
+	tim10Handle.Init.Prescaler = 0;
+	tim10Handle.Init.ClockDivision = 0;
+	tim10Handle.Init.CounterMode = TIM_COUNTERMODE_UP;
+	HAL_TIM_Base_Init(&tim10Handle);
+	HAL_TIM_PWM_Init(&tim10Handle);
+
+	TIM_OC_InitTypeDef tim10OCConfig;
+	tim10OCConfig.OCMode = TIM_OCMODE_PWM1;
+	tim10OCConfig.OCIdleState = TIM_OCIDLESTATE_SET;
+	tim10OCConfig.Pulse = period / 2;
+	tim10OCConfig.OCPolarity = TIM_OCPOLARITY_HIGH;
+	tim10OCConfig.OCFastMode = TIM_OCFAST_ENABLE;
+	HAL_TIM_PWM_ConfigChannel(&tim10Handle, &tim10OCConfig, TIM_CHANNEL_1);
+
+	HAL_TIM_Base_Start(&tim10Handle);
+	HAL_TIM_PWM_Start(&tim10Handle, TIM_CHANNEL_1);
 }
 
 int main()
@@ -211,6 +293,7 @@ int main()
 	GPIO_Config();
 	SPI_Config();
 	I2C_Config();
+	TIM_Config();
 
 	sdram.init();
 
@@ -228,10 +311,17 @@ int main()
 	fbInfo.setWindowPos(240, 0);
 	fbInfo.setOrientation(LANDSCAPE);
 	fbInfo.clear(COLOR_BLACK);
-	
 	fbInfo.redraw();
+	
+	fbCamera.init(&display, CAMERA_FB_ADDR, 176, 144, COLOR_WHITE, COLOR_BLACK);
+	fbCamera.setWindowPos(0, 0);
+	fbCamera.setOrientation(LANDSCAPE);
+	fbCamera.clear(COLOR_WHITE);
+	fbCamera.redraw();
 
-	irSensor.init(&i2cHandle, THERMAL_FB_ADDR, THERMAL_RESOLUTION, THERMAL_RESOLUTION, ALTERNATE_COLOR_SCHEME);
+	irSensor.init(&ti2cHandle, THERMAL_FB_ADDR, THERMAL_RESOLUTION, THERMAL_RESOLUTION, ALTERNATE_COLOR_SCHEME);
+
+	camera.init(&ci2cHandle, CAM_HREF_PORT, CAM_HREF_PIN, CAM_RESET_PORT, CAM_RESET_PIN, CAMERA_FB_ADDR);
 
 	/* Thread 1 definition */
 	osThreadDef(LED1, LED_Thread1, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
@@ -239,12 +329,14 @@ int main()
 	osThreadDef(GRID_EYE, GridEye_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(READ_KEYS, ReadKeys_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(DRAW, Draw_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE + 128);
+	osThreadDef(CAMERA, Camera_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE + 128);
   
 	LEDThread1Handle = osThreadCreate(osThread(LED1), nullptr);
 	LEDThread2Handle = osThreadCreate(osThread(LED2), nullptr);
 	GridEyeThreadHandle = osThreadCreate(osThread(GRID_EYE), nullptr);
 	ReadKeysThreadHandle = osThreadCreate(osThread(READ_KEYS), nullptr);
 	DrawThreadHandle = osThreadCreate(osThread(DRAW), nullptr);
+	CameraThreadHandle = osThreadCreate(osThread(CAMERA), nullptr);
   
 	/* Start scheduler */
 	osKernelStart();
@@ -307,7 +399,7 @@ static void Draw_Thread(void const *argument)
 	uint8_t hotDotX = 0;
 	uint8_t hotDotY = 0;
 
-	const uint8_t hpUpdDelay = 6;
+	const uint8_t hpUpdDelay = 8;
 	uint8_t cntr = hpUpdDelay;
 	bool oneTimeActionDone = false;
 
@@ -359,6 +451,21 @@ static void Draw_Thread(void const *argument)
 	}
 }
 
+static void Camera_Thread(void const *argument)
+{
+	(void)argument;
+
+	for (;;)
+	{
+		if (camera.isFrameReady())
+		{
+			//fbCamera.redraw();
+			//camera.captureFrame();
+		}
+		osDelay(150);
+	}
+}
+
 static void ReadKeys_Thread(void const *argument)
 {
 	(void)argument;
@@ -385,7 +492,7 @@ static void ReadKeys_Thread(void const *argument)
 		{
 			isPressed = false;
 		}
-		osDelay(75);
+		osDelay(150);
 	}
 }
 
@@ -404,6 +511,11 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
 	{
 		display.DMATXCompleted();
 	}
+}
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+	camera.PclkInterrupt();
 }
 
 void vApplicationStackOverflowHook(TaskHandle_t xTask, const char *taskName)
