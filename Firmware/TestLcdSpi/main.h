@@ -44,15 +44,6 @@ extern "C" {
 #define CAM_XCLK_PIN	   GPIO_PIN_6
 #define CAM_XCLK_PORT	   GPIOF
 
-#define CAM_PCLK_PIN	   GPIO_PIN_3
-#define CAM_PCLK_PORT	   GPIOC
-
-#define CAM_RESET_PIN	   GPIO_PIN_9
-#define CAM_RESET_PORT	   GPIOB
-
-#define CAM_HREF_PIN	   GPIO_PIN_10
-#define CAM_HREF_PORT	   GPIOF
-
 extern SPI_HandleTypeDef lcdSpiHandle;
 
 extern OV7670 camera;
@@ -61,7 +52,7 @@ extern Framebuffer fbMain;
 extern Framebuffer fbInfo;
 extern Framebuffer fbCamera;
 
-extern void Error_Handler(uint8_t reason, unsigned int * hardfault_args);
+extern void Error_Handler(uint8_t reason, unsigned int * hardfault_args, const char* comment = nullptr);
 extern void vApplicationStackOverflowHook(TaskHandle_t xTask, const char* taskName);
 
 #ifdef __cplusplus

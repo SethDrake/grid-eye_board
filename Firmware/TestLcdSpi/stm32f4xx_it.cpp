@@ -82,19 +82,19 @@ void SysTick_Handler()
 	osSystickHandler();
 }
 
+void DCMI_IRQHandler()
+{
+	camera.DCMI_Interrupt();
+}
+
+void DMA2_Stream1_IRQHandler()
+{
+	camera.DCMI_DMA_Interrupt();
+}
+
 void DMA2_Stream4_IRQHandler()
 {
 	display.DMATXInterrupt();
-}
-
-void EXTI3_IRQHandler()
-{
-	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_3);
-}
-
-void EXTI15_10_IRQHandler()
-{
-	HAL_GPIO_EXTI_IRQHandler(GPIO_PIN_10);
 }
 
 void hard_fault_handler(unsigned int * hardfault_args)

@@ -125,24 +125,6 @@ static void GPIO_Config()
 	GPIO_InitStructure.Speed = GPIO_SPEED_HIGH;
 	GPIO_InitStructure.Pull = GPIO_NOPULL;
 	HAL_GPIO_Init(LED_PORT, &GPIO_InitStructure);
-
-	GPIO_InitStructure.Pin = CAM_PCLK_PIN;
-	GPIO_InitStructure.Mode = GPIO_MODE_IT_FALLING;
-	GPIO_InitStructure.Pull = GPIO_NOPULL;
-	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	HAL_GPIO_Init(CAM_PCLK_PORT, &GPIO_InitStructure);
-	
-	GPIO_InitStructure.Pin = CAM_HREF_PIN;
-	GPIO_InitStructure.Mode = GPIO_MODE_INPUT;
-	GPIO_InitStructure.Pull = GPIO_NOPULL;
-	GPIO_InitStructure.Speed = GPIO_SPEED_FREQ_VERY_HIGH;
-	HAL_GPIO_Init(CAM_HREF_PORT, &GPIO_InitStructure);
-
-	GPIO_InitStructure.Pin = CAM_RESET_PIN;
-	GPIO_InitStructure.Mode = GPIO_MODE_OUTPUT_PP;
-	GPIO_InitStructure.Pull = GPIO_NOPULL;
-	GPIO_InitStructure.Speed = GPIO_SPEED_LOW;
-	HAL_GPIO_Init(CAM_RESET_PORT, &GPIO_InitStructure);
 }
 
 static void SPI_Config()
@@ -254,7 +236,7 @@ static void TIM_Config()
 	GPIO_InitStruct.Alternate = GPIO_AF3_TIM10;
 	HAL_GPIO_Init(CAM_XCLK_PORT, &GPIO_InitStruct);
 
-	const uint16_t period = (SystemCoreClock / 8000000); // 12MHz
+	const uint16_t period = (SystemCoreClock / 12000000); // 12MHz
 
 	tim10Handle.Instance = TIM10;
 	tim10Handle.Init.Period = period - 1;
@@ -313,21 +295,15 @@ int main()
 	fbInfo.clear(COLOR_BLACK);
 	fbInfo.redraw();
 	
-	fbCamera.init(&display, CAMERA_FB_ADDR, 176, 144, COLOR_WHITE, COLOR_BLACK);
+	fbCamera.init(&display, CAMERA_FB_ADDR, CAM_FRAME_WIDTH, CAM_FRAME_HEIGHT, COLOR_WHITE, COLOR_BLACK);
 	fbCamera.setWindowPos(0, 0);
 	fbCamera.setOrientation(LANDSCAPE);
-	fbCamera.clear(COLOR_WHITE);
+	fbCamera.clear(COLOR_GRAY2);
 	fbCamera.redraw();
 
 	irSensor.init(&ti2cHandle, THERMAL_FB_ADDR, THERMAL_RESOLUTION, THERMAL_RESOLUTION, ALTERNATE_COLOR_SCHEME);
-
-	camera.init(&ci2cHandle, CAM_HREF_PORT, CAM_HREF_PIN, CAM_RESET_PORT, CAM_RESET_PIN, CAMERA_FB_ADDR);
-
-	camera.captureFrame();
-
-	/*while(!camera.isFrameReady())
-	{
-	}*/
+	
+	camera.init(&ci2cHandle, CAMERA_FB_ADDR);
 
 	/* Thread 1 definition */
 	osThreadDef(LED1, LED_Thread1, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
@@ -361,10 +337,10 @@ static void LED_Thread1(void const *argument)
 		osDelay(2000);
 		
 		HAL_GPIO_WritePin(LED_PORT, GREEN_LED_PIN, GPIO_PIN_RESET);
-		osThreadSuspend(LEDThread2Handle);
+		//osThreadSuspend(LEDThread2Handle);
 		osDelay(2000);
 		
-		osThreadResume(LEDThread2Handle);
+		//osThreadResume(LEDThread2Handle);
 	}
 }
 
@@ -411,7 +387,7 @@ static void Draw_Thread(void const *argument)
 
 	for (;;)
 	{
-		if (sensorReady && camera.isFrameReady())
+		if (sensorReady)
 		{
 			const TickType_t xTime1 = xTaskGetTickCount();
 			if (!oneTimeActionDone)
@@ -434,11 +410,18 @@ static void Draw_Thread(void const *argument)
 				minTemp = irSensor.getMinTemp();
 				const uint16_t cpuUsage = osGetCPUUsage();
 
-				fbInfo.printf(4, 200, "VM: %u", vis_mode);
-				fbInfo.printf(4, 230, "CPU: %u%%", cpuUsage);
-				fbInfo.printf(4, 215, "T: %04u", xExecutionTime);
 				fbInfo.printf(4, 5, COLOR_RED, COLOR_BLACK, "MAX:%u\x81", maxTemp);
 				fbInfo.printf(4, 180, COLOR_GREEN, COLOR_BLACK, "MIN:%u\x81", minTemp);
+				if (camera.isCameraOk()) {
+					fbInfo.printf(4, 192, "CAM:%x", camera.getCameraId());
+				}
+				else 
+				{
+					fbInfo.printf(4, 192, COLOR_RED, COLOR_BLACK, "CAM ERROR", camera.getCameraId());
+				}
+				fbInfo.printf(4, 206, "VM:%u", vis_mode);
+				fbInfo.printf(4, 217, "T:%04u", xExecutionTime);
+				fbInfo.printf(4, 230, "CPU %u%%", cpuUsage);
 				fbInfo.redraw();
 			}
 			cntr++;
@@ -519,17 +502,23 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
 	}
 }
 
-void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi) {
+	camera.frameCompleted();
+}
+
+void HAL_DCMI_ErrorCallback(DCMI_HandleTypeDef *hdcmi)
 {
-	camera.PclkInterrupt();
+	Error_Handler(17, nullptr, "DCMI ERROR");
+	while (true);
 }
 
 void vApplicationStackOverflowHook(TaskHandle_t xTask, const char *taskName)
 {
-	Error_Handler(42, nullptr);
+	Error_Handler(42, nullptr, "STACK OVERFLOW");
+	while (true);
 }
 
-void Error_Handler(const uint8_t reason, unsigned int * hardfault_args)
+void Error_Handler(const uint8_t reason, unsigned int * hardfault_args, const char* comment)
 {
 	HAL_GPIO_WritePin(LED_PORT, GREEN_LED_PIN, GPIO_PIN_RESET);
 	HAL_GPIO_WritePin(LED_PORT, RED_LED_PIN, GPIO_PIN_SET);
@@ -564,6 +553,10 @@ void Error_Handler(const uint8_t reason, unsigned int * hardfault_args)
 	else
 	{
 		fbMain.printf(30, 10, "STOP ERROR DETECTED --- REASON: %u");
+		if (comment != nullptr)
+		{
+			fbMain.printf(50, 10, comment);
+		}
 	}
 
 	fbMain.redraw();
@@ -582,7 +575,7 @@ void assert_failed(uint8_t* file, uint32_t line)
   /* User can add his own implementation to report the file name and line number,
      ex: printf("Wrong parameters value: file %s on line %d\r\n", file, line) */
 
-	Error_Handler(7, nullptr);
+	Error_Handler(7, nullptr, "ASSERT");
 	fbMain.clear(COLOR_BLUE);
 	fbMain.printf(1, 10, "Wrong parameters value:");
 	fbMain.printf(1, 25, "file %s on line %d", file, line);
