@@ -282,7 +282,13 @@ static struct regval_list OV7670_reg[] = {
 	{ 0x7a, 16 },
 
 	/* fps */
-	{ REG_CLKRC, 0x00 }, // pre-scalar = 1/1
+	{ REG_CLKRC, 0x80 }, // pre-scalar = 1/1
+	{ 0x6b, 0x0a },
+	{ 0x2a, 0x00 },
+	{ 0x2b, 0x00 },
+	{ 0x92, 0x00 },
+	{ 0x93, 0x00 },
+	{ 0x3b, 0x0a },
 
 					/* others */
 	{ REG_MVFP, 0x31 }, //mirror flip
