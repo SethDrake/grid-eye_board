@@ -244,7 +244,7 @@ static struct regval_list OV7670_reg[] = {
 	{ SCALING_PCLK_DIV, 0xf1 }, // DSP clock /= 2
 
 					/* windowing (empirically decided...) */
-	{ REG_HSTART, 0x14 },   // HSTART
+	{ REG_HSTART, 0x14/*0x14*/ },   // HSTART
 	{ REG_HSTOP, 0x02 },   // HSTOP
 	{ REG_HREF, 0x80 },   // HREF
 	{ REG_VSTART, 0x03 },   // VSTART =  14 ( = 3 * 4 + 2)
