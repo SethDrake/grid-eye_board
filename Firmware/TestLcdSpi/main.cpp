@@ -17,6 +17,8 @@ IRSensor irSensor;
 
 __IO uint8_t vis_mode = 1;
 __IO uint8_t sensorReady = 0;
+__IO uint16_t linesCount = 0;
+__IO uint16_t vSyncCount = 0;
 
 osThreadId LEDThread1Handle, LEDThread2Handle, GridEyeThreadHandle, ReadKeysThreadHandle, DrawThreadHandle, CameraThreadHandle;
 
@@ -162,7 +164,7 @@ static void I2C_Config()
 	if (HAL_I2C_GetState(&ti2cHandle) == HAL_I2C_STATE_RESET)
 	{
 		ti2cHandle.Instance = THERMAL_I2C;
-		ti2cHandle.Init.ClockSpeed = 500000;
+		ti2cHandle.Init.ClockSpeed = 400000;
 		ti2cHandle.Init.DutyCycle = I2C_DUTYCYCLE_2;
 		ti2cHandle.Init.OwnAddress1 = 0;
 		ti2cHandle.Init.AddressingMode = I2C_ADDRESSINGMODE_7BIT;
@@ -211,8 +213,8 @@ static void I2C_Config()
 		/* Configure I2C1 SCL & SDA as alternate function  */
 		GPIO_InitStruct.Pin = GPIO_PIN_8 | GPIO_PIN_7;
 		GPIO_InitStruct.Mode = GPIO_MODE_AF_OD;
-		GPIO_InitStruct.Pull = GPIO_PULLUP;
-		GPIO_InitStruct.Speed = GPIO_SPEED_FAST;
+		GPIO_InitStruct.Pull = GPIO_NOPULL;
+		GPIO_InitStruct.Speed = GPIO_SPEED_LOW;
 		GPIO_InitStruct.Alternate = GPIO_AF4_I2C1;
 		HAL_GPIO_Init(GPIOB, &GPIO_InitStruct);
 
@@ -236,7 +238,7 @@ static void TIM_Config()
 	GPIO_InitStruct.Alternate = GPIO_AF3_TIM10;
 	HAL_GPIO_Init(CAM_XCLK_PORT, &GPIO_InitStruct);
 
-	const uint16_t period = (SystemCoreClock / 12000000); // 12MHz
+	const uint16_t period = (SystemCoreClock / 24000000); // 24MHz
 
 	tim10Handle.Instance = TIM10;
 	tim10Handle.Init.Period = period - 1;
@@ -295,7 +297,7 @@ int main()
 	fbInfo.clear(COLOR_BLACK);
 	fbInfo.redraw();
 	
-	fbCamera.init(&display, CAMERA_FB_ADDR, CAM_FRAME_WIDTH, CAM_FRAME_HEIGHT, COLOR_WHITE, COLOR_BLACK);
+	fbCamera.init(&display, CAMERA_FB_ADDR, 320, 240, COLOR_WHITE, COLOR_BLACK);
 	fbCamera.setWindowPos(0, 0);
 	fbCamera.setOrientation(LANDSCAPE);
 	fbCamera.clear(COLOR_GRAY2);
@@ -303,7 +305,10 @@ int main()
 
 	irSensor.init(&ti2cHandle, THERMAL_FB_ADDR, THERMAL_RESOLUTION, THERMAL_RESOLUTION, ALTERNATE_COLOR_SCHEME);
 	
-	camera.init(&ci2cHandle, CAMERA_FB_ADDR);
+	if (!camera.init(&ci2cHandle, CAMERA_FB_ADDR))
+	{
+		Error_Handler(15, nullptr, "CAMERA INIT ERROR!");
+	}
 
 	/* Thread 1 definition */
 	osThreadDef(LED1, LED_Thread1, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
@@ -422,7 +427,7 @@ static void Draw_Thread(void const *argument)
 				fbInfo.printf(4, 206, "VM:%u", vis_mode);
 				fbInfo.printf(4, 217, "T:%04u", xExecutionTime);
 				fbInfo.printf(4, 230, "CPU %u%%", cpuUsage);
-				fbInfo.redraw();
+				//fbInfo.redraw();
 			}
 			cntr++;
 
@@ -449,9 +454,11 @@ static void Camera_Thread(void const *argument)
 		if (camera.isFrameReady())
 		{
 			fbCamera.redraw();
+			linesCount = 0;
+			vSyncCount = 0;
 			camera.captureFrame();
 		}
-		osDelay(70);
+		osDelay(75);
 	}
 }
 
@@ -508,7 +515,13 @@ void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi) {
 
 void HAL_DCMI_ErrorCallback(DCMI_HandleTypeDef *hdcmi)
 {
-	Error_Handler(17, nullptr, "DCMI ERROR");
+	const uint32_t errorCode = hdcmi->ErrorCode;
+	if ((errorCode & HAL_DCMI_ERROR_SYNC) != 0) {
+		Error_Handler(17, nullptr, "DCMI ERROR: HAL_DCMI_ERROR_SYNC");
+	}
+	if ((errorCode & HAL_DCMI_ERROR_OVR) != 0) {
+		Error_Handler(18, nullptr, "DCMI ERROR: HAL_DCMI_ERROR_OVR");
+	}
 	while (true);
 }
 
@@ -555,7 +568,7 @@ void Error_Handler(const uint8_t reason, unsigned int * hardfault_args, const ch
 		fbMain.printf(30, 10, "STOP ERROR DETECTED --- REASON: %u");
 		if (comment != nullptr)
 		{
-			fbMain.printf(50, 10, comment);
+			fbMain.printf(30, 30, comment);
 		}
 	}
 

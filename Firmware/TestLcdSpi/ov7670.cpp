@@ -1,5 +1,6 @@
 #include "ov7670.h"
 #include "delay.h"
+#include "main.h"
 
 OV7670::OV7670()
 {
@@ -51,9 +52,9 @@ bool OV7670::init(I2C_HandleTypeDef* i2cHandle, const uint32_t fb_addr)
 
 	dcmiHandle.Instance = DCMI;
 	dcmiHandle.Init.SynchroMode = DCMI_SYNCHRO_HARDWARE;
-	dcmiHandle.Init.PCKPolarity = DCMI_PCKPOLARITY_FALLING;
-	dcmiHandle.Init.VSPolarity = DCMI_VSPOLARITY_LOW;
-	dcmiHandle.Init.HSPolarity = DCMI_HSPOLARITY_HIGH;
+	dcmiHandle.Init.PCKPolarity = DCMI_PCKPOLARITY_RISING;
+	dcmiHandle.Init.VSPolarity = DCMI_VSPOLARITY_HIGH;
+	dcmiHandle.Init.HSPolarity = DCMI_HSPOLARITY_LOW;
 	dcmiHandle.Init.CaptureRate = DCMI_CR_ALL_FRAME;
 	dcmiHandle.Init.ExtendedDataMode = DCMI_EXTEND_DATA_8B;
 	dcmiHandle.Init.JPEGMode = DCMI_JPEG_DISABLE;
@@ -62,7 +63,7 @@ bool OV7670::init(I2C_HandleTypeDef* i2cHandle, const uint32_t fb_addr)
 		return false;
 	}
 
-	HAL_NVIC_SetPriority(DCMI_IRQn, 0x09, 0);
+	HAL_NVIC_SetPriority(DCMI_IRQn, 0x0A, 0);
 	HAL_NVIC_EnableIRQ(DCMI_IRQn);
 	HAL_DCMI_DisableCrop(&dcmiHandle);
 
@@ -76,7 +77,7 @@ bool OV7670::init(I2C_HandleTypeDef* i2cHandle, const uint32_t fb_addr)
 	dcmiDmaHandle.Init.PeriphDataAlignment = DMA_PDATAALIGN_WORD;
 	dcmiDmaHandle.Init.MemDataAlignment = DMA_MDATAALIGN_WORD;
 	dcmiDmaHandle.Init.Mode = DMA_NORMAL;
-	dcmiDmaHandle.Init.Priority = DMA_PRIORITY_HIGH;
+	dcmiDmaHandle.Init.Priority = DMA_PRIORITY_LOW;
 	dcmiDmaHandle.Init.FIFOMode = DMA_FIFOMODE_DISABLE;
 	if (HAL_DMA_Init(&dcmiDmaHandle) != HAL_OK)
 	{
@@ -85,9 +86,10 @@ bool OV7670::init(I2C_HandleTypeDef* i2cHandle, const uint32_t fb_addr)
 
 	__HAL_LINKDMA(&dcmiHandle, DMA_Handle, dcmiDmaHandle);
 
-	HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0x10, 0);
+	HAL_NVIC_SetPriority(DMA2_Stream1_IRQn, 0x05, 0);
 	HAL_NVIC_EnableIRQ(DMA2_Stream1_IRQn);
 
+	DelayManager::DelayMs(50);
 	writeData(REG_COM7, COM7_RESET); //reset
 	DelayManager::DelayMs(30);
 	//read PID & VID
@@ -97,12 +99,8 @@ bool OV7670::init(I2C_HandleTypeDef* i2cHandle, const uint32_t fb_addr)
 		return false;
 	}
 	cameraID = ((uint16_t)camPID << 8) | readData(REG_VER);
-	
-	//executeSequence(OV7670_regs);
-	//executeSequence(ov7670_default_regs);
-	//executeSequence(qvga_ov7670);
-	//executeSequence(rgb565_ov7670);
-	//writeData(REG_COM10, COM10_PCLK_HB);
+
+	executeSequence(OV7670_reg);
 
 	isOk = true;
 
@@ -122,12 +120,13 @@ void OV7670::DCMI_DMA_Interrupt()
 void OV7670::writeData(const uint8_t reg, uint8_t value)
 {
 	HAL_I2C_Mem_Write(i2cHandle, CAM_I2C_ADDR, (uint16_t)reg, I2C_MEMADD_SIZE_8BIT, &value, 1, SCCB_TIMEOUT_MAX);
+	DelayManager::DelayMs(1);
 }
 
 uint8_t OV7670::readData(uint8_t reg)
 {
-	uint8_t data = 0;
-	uint8_t i = 3;
+	uint8_t data = 0x77;
+	uint8_t i = 10;
 	while (i > 0) {
 		i--;
 		HAL_StatusTypeDef stat = HAL_I2C_Master_Transmit(i2cHandle, CAM_I2C_ADDR, &reg, 1, SCCB_TIMEOUT_MAX);
@@ -154,13 +153,12 @@ void OV7670::executeSequence(const regval_list reglist[])
 			break;
 		}
 		writeData(reg_addr, reg_val);
-		DelayManager::DelayMs(1);
 		if (reg_addr != 0x12) {
 			const uint8_t new_val = readData(reg_addr);
 			if (new_val != reg_val)
 			{
-				//Error_Handler(0x33, nullptr);
-				//while (true) {};
+				Error_Handler(0x33, nullptr, "OV7670 INIT ERROR");
+				while (true) {};
 			}
 		}
 		*next++;
@@ -195,7 +193,7 @@ void OV7670::captureFrame()
 
 void OV7670::frameCompleted()
 {
-	__HAL_DCMI_CLEAR_FLAG(&dcmiHandle, DCMI_FLAG_FRAMERI);
+	HAL_DCMI_Stop(&dcmiHandle);
 	isCaptureInProgress = false;
 	isCameraFrameReady = true;
 }
