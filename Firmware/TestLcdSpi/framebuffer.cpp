@@ -69,7 +69,7 @@ void Framebuffer::init(ILI9341* display, const uint32_t fb_addr, const uint16_t 
 		HAL_DMA2D_ConfigLayer(&dma2dHandle, 0);
 		HAL_DMA2D_ConfigLayer(&dma2dHandle, 1);
 
-		HAL_NVIC_SetPriority(DMA2D_IRQn, 0x09, 0);
+		HAL_NVIC_SetPriority(DMA2D_IRQn, 0x01, 0);
 		HAL_NVIC_EnableIRQ(DMA2D_IRQn);
 	}
 }

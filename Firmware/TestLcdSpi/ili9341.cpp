@@ -317,7 +317,7 @@ void ILI9341::pixelDraw(const uint16_t xpos, const uint16_t ypos, const uint16_t
 void ILI9341::bufferDraw(const uint16_t x, const uint16_t y, const uint16_t xsize, const uint16_t ysize, uint16_t* buf, void(*redrawCallback)() = nullptr)
 {
 	this->redrawCallback = redrawCallback;
-	while (this->isDataSending) {}; //wait until all data wasn't sended
+	waitForSendedOrTimeout(SEND_TIMEOUT); //wait until all data wasn't sended
 	const uint16_t max_buf_size = 65535;
 	uint32_t pixels = xsize * ysize;
 	

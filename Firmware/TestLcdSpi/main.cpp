@@ -453,7 +453,7 @@ static void Draw_Thread(void const *argument)
 			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, vis_mode);
 			fbThermal.printf(hotDotX * (THERMAL_RESOLUTION / 8), hotDotY * (THERMAL_RESOLUTION / 8), COLOR_BLACK, COLOR_TRANSP, "%u\x81", maxTemp);
 			fbThermal.printf(coldDotX * (THERMAL_RESOLUTION / 8), coldDotY * (THERMAL_RESOLUTION / 8), COLOR_GREEN, COLOR_TRANSP, "%u\x81", minTemp);
-			fbThermal.redraw();
+			//fbThermal.redraw();
 
 			const TickType_t xTime2 = xTaskGetTickCount();
 			xExecutionTime = xTime2 - xTime1;
@@ -482,7 +482,7 @@ static void Camera_Thread(void const *argument)
 			//fbCamera.printf(coldDotX * (THERMAL_RESOLUTION / 8), coldDotY * (THERMAL_RESOLUTION / 8), COLOR_GREEN, COLOR_TRANSP, "%u\x81", minTemp);
 			//fbCamera.redraw(RedrawCompleted);
 			xStart = DelayManager::GetSysTickCount();
-			//fbMain.mixBuffers(CAMERA_FB_ADDR, THERMAL_FB_ADDR, BlendBuffersCompleted);
+			fbMain.mixBuffers(CAMERA_FB_ADDR, THERMAL_FB_ADDR, BlendBuffersCompleted);
 		}
 		osDelay(50);
 	}
@@ -539,10 +539,8 @@ void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi) {
 	camera.frameCompleted();
 }
 
-/*void BlendBuffersCompleted(__DMA2D_HandleTypeDef* hdma2d)
+void BlendBuffersCompleted(__DMA2D_HandleTypeDef* hdma2d)
 {
-	fbMain.printf(hotDotX * (THERMAL_RESOLUTION / 8), hotDotY * (THERMAL_RESOLUTION / 8), COLOR_BLACK, COLOR_TRANSP, "%u\x81", maxTemp);
-	fbMain.printf(coldDotX * (THERMAL_RESOLUTION / 8), coldDotY * (THERMAL_RESOLUTION / 8), COLOR_GREEN, COLOR_TRANSP, "%u\x81", minTemp);
 	fbMain.redraw(RedrawCompleted);
 	xFinish = DelayManager::GetSysTickCount();
 	diffMs = xFinish - xStart;
@@ -552,7 +550,7 @@ void RedrawCompleted()
 {
 	diff2Ms = DelayManager::GetSysTickCount() - xStart;
 	camera.captureFrame();
-}*/
+}
 
 void HAL_DCMI_ErrorCallback(DCMI_HandleTypeDef *hdcmi)
 {
