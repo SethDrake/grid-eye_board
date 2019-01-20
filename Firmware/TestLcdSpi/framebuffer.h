@@ -44,23 +44,26 @@ class Framebuffer {
 public:
 	Framebuffer();
 	~Framebuffer();
-	void init(ILI9341* display, const uint32_t fb_addr, const uint16_t fb_sizeX, const uint16_t fb_sizeY, const uint16_t color, const uint16_t bg_color);
+	void init(ILI9341* display, const uint32_t fb_addr, const uint16_t fb_sizeX, const uint16_t fb_sizeY, const uint16_t color, const uint16_t bg_color, bool withDMA2D = false);
 	void setFbAddr(const uint32_t fb_addr);
 	void setWindowPos(const uint16_t startX, const uint16_t startY);
 	void setTextColor(const uint16_t color, const uint16_t bg_color);
 	void setOrientation(const FB_ORIENTATION orientation);
 	void clear(const uint32_t color);
+	void mixBuffers(const uint32_t fb1_addr, const uint32_t fb2_addr, void(*completeCallback)(DMA2D_HandleTypeDef*));
 	uint16_t getFBSizeX();
 	uint16_t getFBSizeY();
 	void printf(const uint16_t x, const uint16_t y, const uint16_t charColor, const uint16_t bkgColor, const char *format, ...);
 	void printf(const uint16_t x, const uint16_t y, const char *format, ...);
 	void putString(const char str[], uint16_t x, const uint16_t y, const uint16_t charColor, const uint16_t bkgColor);
 	void pixelDraw(const uint16_t xpos, const uint16_t ypos, const uint16_t color);
-	void redraw();
-	void redraw(uint16_t x, uint16_t y, uint16_t xsize, uint16_t ysize);
+	void redraw(void(*redrawCallback)() = nullptr);
+	void redraw(uint16_t x, uint16_t y, uint16_t xsize, uint16_t ysize, void(*redrawCallback)() = nullptr);
+	void DMA2D_Interrupt();
 protected:
 	void putChar(const uint16_t x, uint16_t y, const uint8_t chr, const uint16_t charColor, const uint16_t bkgColor);
 private:
+	DMA2D_HandleTypeDef dma2dHandle;
 	ILI9341* display;
 	uint16_t fb_sizeX;
 	uint16_t fb_sizeY;
@@ -70,6 +73,7 @@ private:
 	uint16_t color;
 	uint16_t bg_color;
 	const uint8_t *font;
+	bool withDMA2D;
 	FB_ORIENTATION orientation;
 };
 

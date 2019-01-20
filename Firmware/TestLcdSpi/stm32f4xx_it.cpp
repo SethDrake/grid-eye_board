@@ -1,6 +1,7 @@
 #include "stm32f4xx_it.h"
 #include "cmsis_os.h"
 #include "main.h"
+#include "delay.h"
 
 /******************************************************************************/
 /*            Cortex-M4 Processor Exceptions Handlers                         */
@@ -80,6 +81,7 @@ void SysTick_Handler()
 {
 	HAL_IncTick();
 	osSystickHandler();
+	DelayManager::SysTickIncrement();
 }
 
 void DCMI_IRQHandler()
@@ -96,6 +98,12 @@ void DMA2_Stream4_IRQHandler()
 {
 	display.DMATXInterrupt();
 }
+
+void DMA2D_IRQHandler()
+{
+	fbMain.DMA2D_Interrupt();
+}
+
 
 void hard_fault_handler(unsigned int * hardfault_args)
 {

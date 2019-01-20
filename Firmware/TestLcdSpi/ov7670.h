@@ -5,7 +5,10 @@
 
 #define CAM_I2C_ADDR	  0x42
 
-#define CAM_FRAME_WIDTH   320
+#define CAM_SENSOR_WIDTH   320
+#define CAM_SENSOR_HEIGHT  240
+
+#define CAM_FRAME_WIDTH   240
 #define CAM_FRAME_HEIGHT  240
 
 #define SCCB_TIMEOUT_MAX  3000 
@@ -31,6 +34,14 @@
 #define CAM_DATA5_PORT	   GPIOD
 #define CAM_DATA5_PIN	   GPIO_PIN_3
 
+typedef enum
+{
+	CE_NONE = 0,
+	CE_BW,
+	CE_NEGATIVE,
+	CE_T800
+} CAM_EFFECT;
+
 class OV7670 {
 public:
 	OV7670();
@@ -42,6 +53,7 @@ public:
 	bool isFrameReady();
 	bool isCameraOk();
 	void frameCompleted();
+	void setEffect(CAM_EFFECT effect);
 	uint16_t getCameraId();
 protected:
 	void executeSequence(const struct regval_list reglist[]);
@@ -56,6 +68,7 @@ private:
 	volatile bool isCameraFrameReady;
 	uint32_t fb_addr;
 	volatile uint16_t cameraID;
+	volatile CAM_EFFECT effect;
 };
 
 /* Registers */
@@ -244,8 +257,10 @@ static struct regval_list OV7670_reg[] = {
 	{ SCALING_PCLK_DIV, 0xf1 }, // DSP clock /= 2
 
 					/* windowing (empirically decided...) */
-	{ REG_HSTART, 0x14/*0x14*/ },   // HSTART
-	{ REG_HSTOP, 0x02 },   // HSTOP
+	{ REG_HSTART, 0x14 },   // HSTART - 320px
+	{ REG_HSTOP, 0x02 },   // HSTOP - 320px
+	//{ REG_HSTART, 0x19 },   // HSTART - 240px
+	//{ REG_HSTOP, 0x07 },   // HSTOP - 240px
 	{ REG_HREF, 0x80 },   // HREF
 	{ REG_VSTART, 0x03 },   // VSTART =  14 ( = 3 * 4 + 2)
 	{ REG_VSTOP, 0x7b },   // VSTOP  = 494 ( = 123 * 4 + 2)
@@ -281,14 +296,13 @@ static struct regval_list OV7670_reg[] = {
 	{ 0x89, 244 },
 	{ 0x7a, 16 },
 
-	/* fps */
-	{ REG_CLKRC, 0x80 }, // pre-scalar = 1/1
 	{ 0x6b, 0x0a },
 	{ 0x2a, 0x00 },
 	{ 0x2b, 0x00 },
 	{ 0x92, 0x00 },
 	{ 0x93, 0x00 },
-	{ 0x3b, 0x0a },
+	{ 0x3b, 0x0a },
+
 
 					/* others */
 	{ REG_MVFP, 0x31 }, //mirror flip

@@ -1,6 +1,7 @@
 #include "main.h"
 #include "sdram.h"
 #include "thermal.h"
+#include "delay.h"
 
 SPI_HandleTypeDef lcdSpiHandle;
 I2C_HandleTypeDef ti2cHandle;
@@ -10,15 +11,30 @@ TIM_HandleTypeDef tim10Handle;
 SDRAM sdram;
 ILI9341 display;
 OV7670 camera;
+
+Framebuffer fbThermal;
+Framebuffer fbCamera;
 Framebuffer fbMain;
 Framebuffer fbInfo;
-Framebuffer fbCamera;
+
 IRSensor irSensor;
 
-__IO uint8_t vis_mode = 1;
+__IO uint8_t vis_mode = 0;
 __IO uint8_t sensorReady = 0;
-__IO uint16_t linesCount = 0;
-__IO uint16_t vSyncCount = 0;
+__IO uint16_t cpuUsage = 0;
+
+__IO uint8_t minTemp = 0;
+__IO uint8_t maxTemp = 0;
+__IO uint8_t coldDotX = 0;
+__IO uint8_t coldDotY = 0;
+__IO uint8_t hotDotX = 0;
+__IO uint8_t hotDotY = 0;
+
+__IO TickType_t xStart = 0;
+__IO TickType_t xFinish = 0;
+__IO TickType_t diffMs = 0;
+__IO TickType_t diff2Ms = 0;
+
 
 osThreadId LEDThread1Handle, LEDThread2Handle, GridEyeThreadHandle, ReadKeysThreadHandle, DrawThreadHandle, CameraThreadHandle;
 
@@ -101,8 +117,8 @@ static void SystemClock_Config()
 	PeriphClkInitStruct.PeriphClockSelection = RCC_PERIPHCLK_LTDC;
 	PeriphClkInitStruct.PLLSAI.PLLSAIN = 192;
 	PeriphClkInitStruct.PLLSAI.PLLSAIR = 4;
-	PeriphClkInitStruct.PLLSAIDivR = RCC_PLLSAIDIVR_8;
-	HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct);
+	PeriphClkInitStruct.PLLSAIDivR = RCC_PLLSAIDIVR_2;
+	//HAL_RCCEx_PeriphCLKConfig(&PeriphClkInitStruct);
 }
 
 static void GPIO_Config()
@@ -285,7 +301,17 @@ int main()
 	display.init();
 	display.clear(COLOR_BLACK);
 
-	fbMain.init(&display, THERMAL_FB_ADDR, 240, 240, COLOR_WHITE, COLOR_BLACK);
+	fbThermal.init(&display, THERMAL_FB_ADDR, THERMAL_RESOLUTION, THERMAL_RESOLUTION, COLOR_WHITE, COLOR_BLACK);
+	fbThermal.setWindowPos(0, 0);
+	fbThermal.setOrientation(LANDSCAPE);
+	fbThermal.clear(COLOR_BLACK);
+
+	fbCamera.init(&display, CAMERA_FB_ADDR, CAM_FRAME_WIDTH, CAM_FRAME_HEIGHT, COLOR_WHITE, COLOR_BLACK);
+	fbCamera.setWindowPos(0, 0);
+	fbCamera.setOrientation(LANDSCAPE);
+	fbCamera.clear(COLOR_WHITE);
+	
+	fbMain.init(&display, DISPLAY_FB_ADDR, 240, 240, COLOR_WHITE, COLOR_BLACK, true);
 	fbMain.setWindowPos(0, 0);
 	fbMain.setOrientation(LANDSCAPE);
 	fbMain.clear(COLOR_BLACK);
@@ -296,19 +322,12 @@ int main()
 	fbInfo.setOrientation(LANDSCAPE);
 	fbInfo.clear(COLOR_BLACK);
 	fbInfo.redraw();
-	
-	fbCamera.init(&display, CAMERA_FB_ADDR, 320, 240, COLOR_WHITE, COLOR_BLACK);
-	fbCamera.setWindowPos(0, 0);
-	fbCamera.setOrientation(LANDSCAPE);
-	fbCamera.clear(COLOR_GRAY2);
-	fbCamera.redraw();
 
 	irSensor.init(&ti2cHandle, THERMAL_FB_ADDR, THERMAL_RESOLUTION, THERMAL_RESOLUTION, ALTERNATE_COLOR_SCHEME);
 	
-	if (!camera.init(&ci2cHandle, CAMERA_FB_ADDR))
-	{
-		Error_Handler(15, nullptr, "CAMERA INIT ERROR!");
-	}
+	camera.init(&ci2cHandle, CAMERA_FB_ADDR);
+	//camera.setEffect(CE_BW);
+
 
 	/* Thread 1 definition */
 	osThreadDef(LED1, LED_Thread1, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
@@ -379,13 +398,7 @@ static void Draw_Thread(void const *argument)
 	(void)argument;
 
 	TickType_t xExecutionTime = 0;
-	uint8_t minTemp = 0;
-	uint8_t maxTemp = 0;
-	uint8_t coldDotX = 0;
-	uint8_t coldDotY = 0;
-	uint8_t hotDotX = 0;
-	uint8_t hotDotY = 0;
-
+	
 	const uint8_t hpUpdDelay = 8;
 	uint8_t cntr = hpUpdDelay;
 	bool oneTimeActionDone = false;
@@ -399,6 +412,16 @@ static void Draw_Thread(void const *argument)
 			{
 				irSensor.setFbAddress(INFO_FB_ADDR);
 				irSensor.drawGradient(&fbInfo, 6, 20, 16, 175);
+				
+				if (camera.isCameraOk()) {
+					fbInfo.printf(4, 192, "CAM:%x", camera.getCameraId());
+				}
+				else
+				{
+					fbInfo.printf(4, 192, COLOR_RED, COLOR_BLACK, "CAM ERROR", camera.getCameraId());
+				}
+				irSensor.setFbAddress(THERMAL_FB_ADDR);
+				irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, vis_mode);
 				oneTimeActionDone = true;
 			}
 
@@ -413,29 +436,24 @@ static void Draw_Thread(void const *argument)
 				coldDotX = coldDot % 8;
 				maxTemp = irSensor.getMaxTemp();
 				minTemp = irSensor.getMinTemp();
-				const uint16_t cpuUsage = osGetCPUUsage();
+				cpuUsage = osGetCPUUsage();
 
 				fbInfo.printf(4, 5, COLOR_RED, COLOR_BLACK, "MAX:%u\x81", maxTemp);
 				fbInfo.printf(4, 180, COLOR_GREEN, COLOR_BLACK, "MIN:%u\x81", minTemp);
-				if (camera.isCameraOk()) {
-					fbInfo.printf(4, 192, "CAM:%x", camera.getCameraId());
-				}
-				else 
-				{
-					fbInfo.printf(4, 192, COLOR_RED, COLOR_BLACK, "CAM ERROR", camera.getCameraId());
-				}
 				fbInfo.printf(4, 206, "VM:%u", vis_mode);
 				fbInfo.printf(4, 217, "T:%04u", xExecutionTime);
+				//fbInfo.printf(4, 217, "T:%04u", diffMs);
+				fbInfo.printf(4, 230, "C:%04u", diff2Ms);
 				fbInfo.printf(4, 230, "CPU %u%%", cpuUsage);
-				//fbInfo.redraw();
+				fbInfo.redraw();
 			}
 			cntr++;
 
 			irSensor.setFbAddress(THERMAL_FB_ADDR);
-			/*irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, vis_mode);
-			fbMain.printf(hotDotX * (THERMAL_RESOLUTION / 8), hotDotY * (THERMAL_RESOLUTION / 8), COLOR_BLACK, COLOR_TRANSP, "%u\x81", maxTemp);
-			fbMain.printf(coldDotX * (THERMAL_RESOLUTION / 8), coldDotY * (THERMAL_RESOLUTION / 8), COLOR_GREEN, COLOR_TRANSP, "%u\x81", minTemp);
-			fbMain.redraw();*/
+			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, vis_mode);
+			fbThermal.printf(hotDotX * (THERMAL_RESOLUTION / 8), hotDotY * (THERMAL_RESOLUTION / 8), COLOR_BLACK, COLOR_TRANSP, "%u\x81", maxTemp);
+			fbThermal.printf(coldDotX * (THERMAL_RESOLUTION / 8), coldDotY * (THERMAL_RESOLUTION / 8), COLOR_GREEN, COLOR_TRANSP, "%u\x81", minTemp);
+			fbThermal.redraw();
 
 			const TickType_t xTime2 = xTaskGetTickCount();
 			xExecutionTime = xTime2 - xTime1;
@@ -448,17 +466,25 @@ static void Draw_Thread(void const *argument)
 static void Camera_Thread(void const *argument)
 {
 	(void)argument;
+	bool oneTimeActionDone = false;
 
 	for (;;)
 	{
+		if (!oneTimeActionDone)
+		{
+			camera.captureFrame();
+			oneTimeActionDone = true;
+			continue;
+		}
 		if (camera.isFrameReady())
 		{
-			fbCamera.redraw();
-			linesCount = 0;
-			vSyncCount = 0;
-			camera.captureFrame();
+			//fbCamera.printf(hotDotX * (THERMAL_RESOLUTION / 8), hotDotY * (THERMAL_RESOLUTION / 8), COLOR_BLACK, COLOR_TRANSP, "%u\x81", maxTemp);
+			//fbCamera.printf(coldDotX * (THERMAL_RESOLUTION / 8), coldDotY * (THERMAL_RESOLUTION / 8), COLOR_GREEN, COLOR_TRANSP, "%u\x81", minTemp);
+			//fbCamera.redraw(RedrawCompleted);
+			xStart = DelayManager::GetSysTickCount();
+			//fbMain.mixBuffers(CAMERA_FB_ADDR, THERMAL_FB_ADDR, BlendBuffersCompleted);
 		}
-		osDelay(75);
+		osDelay(50);
 	}
 }
 
@@ -512,6 +538,21 @@ void HAL_SPI_ErrorCallback(SPI_HandleTypeDef *hspi)
 void HAL_DCMI_FrameEventCallback(DCMI_HandleTypeDef *hdcmi) {
 	camera.frameCompleted();
 }
+
+/*void BlendBuffersCompleted(__DMA2D_HandleTypeDef* hdma2d)
+{
+	fbMain.printf(hotDotX * (THERMAL_RESOLUTION / 8), hotDotY * (THERMAL_RESOLUTION / 8), COLOR_BLACK, COLOR_TRANSP, "%u\x81", maxTemp);
+	fbMain.printf(coldDotX * (THERMAL_RESOLUTION / 8), coldDotY * (THERMAL_RESOLUTION / 8), COLOR_GREEN, COLOR_TRANSP, "%u\x81", minTemp);
+	fbMain.redraw(RedrawCompleted);
+	xFinish = DelayManager::GetSysTickCount();
+	diffMs = xFinish - xStart;
+}
+
+void RedrawCompleted()
+{
+	diff2Ms = DelayManager::GetSysTickCount() - xStart;
+	camera.captureFrame();
+}*/
 
 void HAL_DCMI_ErrorCallback(DCMI_HandleTypeDef *hdcmi)
 {

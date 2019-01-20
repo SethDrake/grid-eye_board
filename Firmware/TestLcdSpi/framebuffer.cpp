@@ -17,6 +17,7 @@ Framebuffer::Framebuffer()
 	this->orientation = PORTRAIT;
 	this->startX = 0;
 	this->startY = 0;
+	this->withDMA2D = false;
 }
 
 Framebuffer::~Framebuffer()
@@ -31,13 +32,46 @@ Framebuffer::~Framebuffer()
 	this->startY = 0;
 }
 
-void Framebuffer::init(ILI9341* display, const uint32_t fb_addr, const uint16_t fb_sizeX, const uint16_t fb_sizeY, const uint16_t color, const uint16_t bg_color)
+void Framebuffer::init(ILI9341* display, const uint32_t fb_addr, const uint16_t fb_sizeX, const uint16_t fb_sizeY, const uint16_t color, const uint16_t bg_color, const bool withDMA2D)
 {
 	this->display = display;
 	this->fb_sizeX = fb_sizeX;
 	this->fb_sizeY = fb_sizeY;
 	setFbAddr(fb_addr);
 	this->setTextColor(color, bg_color);
+	this->withDMA2D = withDMA2D;
+
+	if (this->withDMA2D)
+	{
+		__DMA2D_CLK_ENABLE();
+		
+		dma2dHandle.Instance = DMA2D;
+		dma2dHandle.Init.Mode = DMA2D_M2M_BLEND;
+		dma2dHandle.Init.ColorMode = DMA2D_OUTPUT_RGB565;
+		dma2dHandle.Init.OutputOffset = 0x00;
+
+		//thermal
+		dma2dHandle.LayerCfg[0].AlphaMode = DMA2D_REPLACE_ALPHA;
+		dma2dHandle.LayerCfg[0].InputAlpha = 0x1F;
+		dma2dHandle.LayerCfg[0].InputColorMode = DMA2D_INPUT_RGB565;
+		dma2dHandle.LayerCfg[0].InputOffset = 0x00;
+
+		//camera
+		dma2dHandle.LayerCfg[1].AlphaMode = DMA2D_REPLACE_ALPHA;
+		dma2dHandle.LayerCfg[1].InputAlpha = 0x1F;
+		dma2dHandle.LayerCfg[1].InputColorMode = DMA2D_INPUT_RGB565;
+		dma2dHandle.LayerCfg[1].InputOffset = 0x00;
+
+		if (HAL_DMA2D_Init(&dma2dHandle) != HAL_OK)
+		{
+			return;
+		}
+		HAL_DMA2D_ConfigLayer(&dma2dHandle, 0);
+		HAL_DMA2D_ConfigLayer(&dma2dHandle, 1);
+
+		HAL_NVIC_SetPriority(DMA2D_IRQn, 0x09, 0);
+		HAL_NVIC_EnableIRQ(DMA2D_IRQn);
+	}
 }
 
 void Framebuffer::setFbAddr(const uint32_t fb_addr)
@@ -73,14 +107,25 @@ void Framebuffer::clear(const uint32_t color)
 	}
 }
 
-void Framebuffer::redraw()
+void Framebuffer::mixBuffers(const uint32_t fb1_addr, const uint32_t fb2_addr, void(*completeCallback)(DMA2D_HandleTypeDef*))
 {
-	redraw(startX, startY, fb_sizeX, fb_sizeY);
+	dma2dHandle.XferCpltCallback = completeCallback;
+	HAL_DMA2D_BlendingStart_IT(&dma2dHandle, fb1_addr, fb2_addr, fb_addr, fb_sizeX, fb_sizeY);
 }
 
-void Framebuffer::redraw(uint16_t x, uint16_t y, uint16_t xsize, uint16_t ysize)
+void Framebuffer::redraw(void(*redrawCallback)())
 {
-	display->bufferDraw(x, y, xsize, ysize, (uint16_t *)this->fb_addr);
+	redraw(startX, startY, fb_sizeX, fb_sizeY, redrawCallback);
+}
+
+void Framebuffer::redraw(const uint16_t x, const uint16_t y, const uint16_t xsize, const uint16_t ysize, void(*redrawCallback)())
+{
+	display->bufferDraw(x, y, xsize, ysize, (uint16_t *)this->fb_addr, redrawCallback);
+}
+
+void Framebuffer::DMA2D_Interrupt()
+{
+	HAL_DMA2D_IRQHandler(&dma2dHandle);
 }
 
 uint16_t Framebuffer::getFBSizeX()

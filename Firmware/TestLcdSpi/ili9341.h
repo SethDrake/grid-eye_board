@@ -24,7 +24,7 @@ public:
 	void pixelDraw(uint16_t xpos, uint16_t ypos, uint16_t color);
 	void lineDraw(uint16_t ypos, uint16_t* line, uint32_t size);
 	void fillScreen(uint16_t xstart, uint16_t ystart, uint16_t xstop, uint16_t ystop, uint16_t color);
-	void bufferDraw(uint16_t x, uint16_t y, uint16_t xsize, uint16_t ysize, uint16_t* buf);
+	void bufferDraw(uint16_t x, uint16_t y, uint16_t xsize, uint16_t ysize, uint16_t* buf, void(*redrawCallback)());
 	void drawBorder(uint16_t xpos, uint16_t ypos, uint16_t width, uint16_t height, uint16_t borderWidth, uint16_t color);
 	void DMATXInterrupt();
 	uint8_t IsDataSending();
@@ -70,6 +70,7 @@ private:
 	void switchCs(uint8_t BitVal);
 	void switchRs(uint8_t BitVal);
 	void waitForSendedOrTimeout(uint32_t timeout);
+	void(*redrawCallback)();
 };
 
 #define RED			0xf800

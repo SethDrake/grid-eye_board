@@ -10,6 +10,7 @@ OV7670::OV7670()
 	this->isCaptureInProgress = false;
 	this->isCameraFrameReady = true;
 	this->cameraID = 0x0000;
+	this->effect = CE_NONE;
 }
 
 OV7670::~OV7670()
@@ -63,9 +64,14 @@ bool OV7670::init(I2C_HandleTypeDef* i2cHandle, const uint32_t fb_addr)
 		return false;
 	}
 
+	//HAL_DCMI_DisableCrop(&dcmiHandle);
+	HAL_DCMI_ConfigCrop(&dcmiHandle, (CAM_SENSOR_WIDTH - CAM_FRAME_WIDTH)/2, (CAM_SENSOR_HEIGHT - CAM_FRAME_HEIGHT)/2, 
+									 (CAM_FRAME_WIDTH * 2) - 1, CAM_FRAME_HEIGHT - 1);
+	HAL_DCMI_EnableCrop(&dcmiHandle);
+
 	HAL_NVIC_SetPriority(DCMI_IRQn, 0x0A, 0);
 	HAL_NVIC_EnableIRQ(DCMI_IRQn);
-	HAL_DCMI_DisableCrop(&dcmiHandle);
+
 
 	__HAL_RCC_DMA2_CLK_ENABLE();
 
@@ -101,10 +107,43 @@ bool OV7670::init(I2C_HandleTypeDef* i2cHandle, const uint32_t fb_addr)
 	cameraID = ((uint16_t)camPID << 8) | readData(REG_VER);
 
 	executeSequence(OV7670_reg);
+	writeData(REG_CLKRC, 0x80);
+
+	setEffect(CE_NONE);
 
 	isOk = true;
 
 	return isOk;
+}
+
+
+void OV7670::setEffect(const CAM_EFFECT effect)
+{
+	this->effect = effect;
+	if (this->effect == CE_NONE)
+	{
+		writeData(REG_TSLB, 0x04 | 0x08);
+		writeData(0x67, 0xC0);
+		writeData(0x68, 0x80);
+	}
+	else if (this->effect == CE_BW)
+	{
+		writeData(REG_TSLB, 0x14 | 0x08);
+		writeData(0x67, 0x80);
+		writeData(0x68, 0x80);
+	}
+	else if (this->effect == CE_NEGATIVE)
+	{
+		writeData(REG_TSLB, 0x24);
+		writeData(0x67, 0x80);
+		writeData(0x68, 0x80);
+	}
+	else if (this->effect == CE_T800)
+	{
+		writeData(REG_TSLB, 0x34);
+		writeData(0x67, 0x80);
+		writeData(0x68, 0x80);
+	}
 }
 
 void OV7670::DCMI_Interrupt()

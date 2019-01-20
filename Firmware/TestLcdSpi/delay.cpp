@@ -15,13 +15,13 @@ DelayManager::~DelayManager() {
 
 }
 
-void DelayManager::TimingDelay_Decrement(void){
+void DelayManager::TimingDelay_Decrement(){
   if (timingDelay > 0){
     timingDelay--;
   }
 }
 
-void DelayManager::SysTickIncrement(void) {
+void DelayManager::SysTickIncrement() {
 	sysTickCount++;
 	TimingDelay_Decrement();
 }

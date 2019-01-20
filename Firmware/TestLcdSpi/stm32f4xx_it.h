@@ -17,6 +17,7 @@ void SysTick_Handler();
 void DCMI_IRQHandler();
 void DMA2_Stream4_IRQHandler();
 void DMA2_Stream1_IRQHandler();
+void DMA2D_IRQHandler();
 
 extern void hard_fault_handler(unsigned int * hardfault_args);
 

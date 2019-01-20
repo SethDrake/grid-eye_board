@@ -19,16 +19,21 @@ extern "C" {
 /* Exported macro ------------------------------------------------------------*/
 /* Exported functions ------------------------------------------------------- */
 
+#define THERMAL_RESOLUTION 240
+
 #define THERMAL_FB_ADDR    SDRAM_DEVICE_ADDR
-#define THERMAL_FB_SIZE	   240 * 240 * 2
+#define THERMAL_FB_SIZE	   THERMAL_RESOLUTION * THERMAL_RESOLUTION * 2
+
 #define INFO_FB_ADDR	   THERMAL_FB_ADDR + THERMAL_FB_SIZE
 #define INFO_FB_SIZE	   80 * 240 * 2
+
 #define CAMERA_FB_ADDR	   INFO_FB_ADDR + INFO_FB_SIZE
 #define CAMERA_FB_SIZE	   CAM_FRAME_WIDTH * CAM_FRAME_HEIGHT * 2
 
-#define CUSTOM_DATA_ADDR   CAMERA_FB_ADDR + CAMERA_FB_SIZE
+#define DISPLAY_FB_ADDR	   CAMERA_FB_ADDR + CAMERA_FB_SIZE
+#define DISPLAY_FB_SIZE	   CAM_FRAME_WIDTH * CAM_FRAME_HEIGHT * 2
 
-#define THERMAL_RESOLUTION 240
+
 
 #define DISPLAY_SPI		   SPI5
 #define THERMAL_I2C		   I2C3
@@ -48,12 +53,16 @@ extern SPI_HandleTypeDef lcdSpiHandle;
 
 extern OV7670 camera;
 extern ILI9341 display;
+extern Framebuffer fbThermal;
+extern Framebuffer fbCamera;
 extern Framebuffer fbMain;
 extern Framebuffer fbInfo;
-extern Framebuffer fbCamera;
 
 extern void Error_Handler(uint8_t reason, unsigned int * hardfault_args, const char* comment = nullptr);
 extern void vApplicationStackOverflowHook(TaskHandle_t xTask, const char* taskName);
+
+extern void BlendBuffersCompleted(DMA2D_HandleTypeDef* hdma2d);
+extern void RedrawCompleted();
 
 #ifdef __cplusplus
 }
