@@ -204,7 +204,7 @@ void IRSensor::visualizeImage(const uint8_t resX, const uint8_t resY, const uint
 				uint8_t green = (uint8_t)((p1 >> 5) & 0x003f) * d1 + (uint8_t)((p2 >> 5) & 0x003f) * d2 + (uint8_t)((p3 >> 5) & 0x003f) * d3 + (uint8_t)((p4 >> 5) & 0x003f) * d4;
 				uint8_t red = (uint8_t)(p1 >> 11) * d1 + (uint8_t)(p2 >> 11) * d2 + (uint8_t)(p3 >> 11) * d3 + (uint8_t)(p4 >> 11) * d4;
 
-				*(volatile uint16_t *)pSdramAddress = ((u_int16_t) red << 11) | ((u_int16_t) green << 5) | (blue);
+				*(volatile uint16_t *)pSdramAddress = ((uint16_t) red << 11) | ((uint16_t) green << 5) | (blue);
 				pSdramAddress++;
 			}
 		}

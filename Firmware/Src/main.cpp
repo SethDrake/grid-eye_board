@@ -1,8 +1,7 @@
 
 #include "main.h"
 #include "cmsis_os.h"
-#include <ili9341.h>
-#include <stm32f429i_discovery.h>
+#include "cpu_utils.h"
 #include <framebuffer.h>
 #include <thermal.h>
 
@@ -14,9 +13,9 @@ Framebuffer fbMainLayer;
 Framebuffer fbInfoLayer;
 IRSensor irSensor;
 
-__IO uint32_t ReloadFlag = 0;
-__IO uint8_t vis_mode = 1;
-__IO uint8_t sensorReady = 0;
+volatile uint32_t ReloadFlag = 0;
+volatile uint8_t vis_mode = 1;
+volatile uint8_t sensorReady = 0;
 
 
 /* Private function prototypes -----------------------------------------------*/

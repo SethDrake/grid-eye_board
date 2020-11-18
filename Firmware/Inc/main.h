@@ -3,14 +3,10 @@
 #define __MAIN_H
 
 /* Includes ------------------------------------------------------------------*/
-#include "stm32f4xx_hal.h"
-#include "stm32f429i_discovery.h"
-#include "stm32f429i_discovery_io.h"
-#include "stm32f429i_discovery_sdram.h"
-//#include "stm32f429i_discovery_lcd.h"
-#include "stm32f429i_discovery_ts.h"
-#include "stm32f429i_discovery_gyroscope.h"
-#include "cpu_utils.h"
+#include <stm32f4xx_hal.h>
+#include "Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/STM32F429I-Discovery/stm32f429i_discovery_io.h"
+#include "Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/STM32F429I-Discovery/stm32f429i_discovery_sdram.h"
+#include "Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/ili9341/ili9341.h"
 
 #ifdef __cplusplus
 extern "C" {

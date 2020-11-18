@@ -1,8 +1,8 @@
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.28307.1267
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "T-Scan", "T-Scan.vcxproj", "{70AF4951-9031-4A43-8036-D894A3AF6157}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "T-Scan", "T-Scan.vcxproj", "{7A1524EF-0131-436F-8393-BB87EB4B74FA}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -10,12 +10,15 @@ Global
 		Release|VisualGDB = Release|VisualGDB
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{70AF4951-9031-4A43-8036-D894A3AF6157}.Debug|VisualGDB.ActiveCfg = Debug|VisualGDB
-		{70AF4951-9031-4A43-8036-D894A3AF6157}.Debug|VisualGDB.Build.0 = Debug|VisualGDB
-		{70AF4951-9031-4A43-8036-D894A3AF6157}.Release|VisualGDB.ActiveCfg = Release|VisualGDB
-		{70AF4951-9031-4A43-8036-D894A3AF6157}.Release|VisualGDB.Build.0 = Release|VisualGDB
+		{7A1524EF-0131-436F-8393-BB87EB4B74FA}.Debug|VisualGDB.ActiveCfg = Debug|VisualGDB
+		{7A1524EF-0131-436F-8393-BB87EB4B74FA}.Debug|VisualGDB.Build.0 = Debug|VisualGDB
+		{7A1524EF-0131-436F-8393-BB87EB4B74FA}.Release|VisualGDB.ActiveCfg = Release|VisualGDB
+		{7A1524EF-0131-436F-8393-BB87EB4B74FA}.Release|VisualGDB.Build.0 = Release|VisualGDB
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {26F8DCB2-B6C2-4FD1-A667-322711FB00A5}
 	EndGlobalSection
 EndGlobal
