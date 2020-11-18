@@ -61,3 +61,5 @@ eagle.epf
 /Firmware/TestLcdSpi/TestLcdSpi.VC.db
 /Firmware/TestLcdSpi/.vs/TestLcdSpi/v14/*.suo
 /Firmware/TestLcdSpi/TestLcdSpi.VC.VC.opendb
+/Firmware/.visualgdb
+/Firmware/.vs
