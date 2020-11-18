@@ -11,8 +11,8 @@
     </CatchpointConfiguration>
     <MaskInterruptsWhileStepping>false</MaskInterruptsWhileStepping>
     <MemoryWindowPreferences />
-    <FavoriteEmbeddedRegisters />
     <LiveVariables />
-    <NestedLiveVariableSettings />
+    <Suggestions />
+    <HardwareRegisters />
   </DebugPreferences>
 </VisualGDBUserPreferences>

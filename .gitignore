@@ -63,3 +63,4 @@ eagle.epf
 /Firmware/TestLcdSpi/TestLcdSpi.VC.VC.opendb
 /Firmware/.visualgdb
 /Firmware/.vs
+/Firmware/*.user

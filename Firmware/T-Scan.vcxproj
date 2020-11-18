@@ -44,7 +44,7 @@
     <ClCompile>
       <CPPLanguageStandard>GNUPP11</CPPLanguageStandard>
       <AdditionalIncludeDirectories>Inc;Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery;%(ClCompile.AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>NDEBUG=1;RELEASE=1;USE_HAL_DRIVER;USE_STM32F429I_DISCO;STM32F429xx;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>DEBUG=1;%(ClCompile.PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <AdditionalLinkerInputs>;%(Link.AdditionalLinkerInputs)</AdditionalLinkerInputs>
