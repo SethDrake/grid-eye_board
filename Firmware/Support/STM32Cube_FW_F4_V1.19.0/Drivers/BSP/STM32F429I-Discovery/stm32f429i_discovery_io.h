@@ -43,9 +43,11 @@
 #endif
 
 /* Includes ------------------------------------------------------------------*/
+#include <Support/STM32Cube_FW_F4_V1.19.0/Drivers/BSP/components/Common/io.h>
+
 #include "stm32f429i_discovery.h"
 /* Include IO component driver */
-#include "../Components/stmpe811/stmpe811.h"   
+// #include "../Components/stmpe811/stmpe811.h"   
 
 /** @addtogroup BSP
   * @{

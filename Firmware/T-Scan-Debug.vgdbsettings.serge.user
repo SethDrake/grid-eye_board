@@ -1,5 +1,5 @@
 <?xml version="1.0"?>
-<VisualGDBUserPreferences xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<VisualGDBUserPreferences xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <UserDefinedVariableValues />
   <DebugPreferences xsi:type="com.visualgdb.debug.embedded.preferences">
     <CatchpointConfiguration>
@@ -11,8 +11,51 @@
     </CatchpointConfiguration>
     <MaskInterruptsWhileStepping>false</MaskInterruptsWhileStepping>
     <MemoryWindowPreferences />
-    <LiveVariables />
-    <Suggestions />
+    <LiveVariables>
+      <LiveVariable>
+        <Expression>frameData[833]</Expression>
+        <Enabled>true</Enabled>
+        <Breakpoint>
+          <ComparisonMode>Equals</ComparisonMode>
+          <Enabled>false</Enabled>
+        </Breakpoint>
+        <Plot>false</Plot>
+        <IsCollapsed>false</IsCollapsed>
+        <IsFavorite>false</IsFavorite>
+      </LiveVariable>
+      <LiveVariable>
+        <Expression>tr</Expression>
+        <Enabled>true</Enabled>
+        <Breakpoint>
+          <ComparisonMode>Equals</ComparisonMode>
+          <Enabled>false</Enabled>
+        </Breakpoint>
+        <Plot>false</Plot>
+        <IsCollapsed>false</IsCollapsed>
+        <IsFavorite>false</IsFavorite>
+      </LiveVariable>
+    </LiveVariables>
+    <NestedLiveVariables>
+      <NestedVariableSettingsCollection>
+        <ID>com.sysprogs.AllGlobals</ID>
+        <Variables />
+      </NestedVariableSettingsCollection>
+      <NestedVariableSettingsCollection>
+        <ID>com.sysprogs.SpecificVariables</ID>
+        <Variables />
+      </NestedVariableSettingsCollection>
+      <NestedVariableSettingsCollection>
+        <ID>com.sysprogs.Custom</ID>
+        <Variables />
+      </NestedVariableSettingsCollection>
+    </NestedLiveVariables>
+    <Suggestions>
+      <HardwareRegisterFilters />
+    </Suggestions>
+    <LiveVariablePreferences>
+      <ViewMode>SpecificVariables</ViewMode>
+      <FavoritesOnly>false</FavoritesOnly>
+    </LiveVariablePreferences>
     <HardwareRegisters />
   </DebugPreferences>
 </VisualGDBUserPreferences>

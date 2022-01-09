@@ -5,7 +5,7 @@
 #include <framebuffer.h>
 #include <thermal.h>
 
-osThreadId LEDThread1Handle, LEDThread2Handle, LTDCThreadHandle, SDRAMThreadHandle, GridEyeThreadHandle, ReadKeysTaskHandle, SwapBuffersTaskHandle; 
+osThreadId LEDThread1Handle, LEDThread2Handle, LTDCThreadHandle, IRSensorThreadHandle, ReadKeysTaskHandle, SwapBuffersTaskHandle; 
 
 LTDC_HandleTypeDef LtdcHandle;
 DMA2D_HandleTypeDef dma2dHandle;
@@ -14,16 +14,19 @@ Framebuffer fbInfoLayer;
 IRSensor irSensor;
 
 volatile uint32_t ReloadFlag = 0;
-volatile uint8_t vis_mode = 1;
-volatile uint8_t sensorReady = 0;
+volatile uint8_t vis_mode = 0;
+volatile bool isSensorReady = false;
+volatile bool isSensorReadDone = false;
+volatile bool isFrameReady = false;
+volatile TickType_t xExecutionTime = 0;
+volatile uint32_t inWait = 0;
 
 
 /* Private function prototypes -----------------------------------------------*/
 static void LED_Thread1(void const *argument);
 static void LED_Thread2(void const *argument);
 static void LTDC_Thread(void const *argument);
-static void SDRAM_Thread(void const *argument);
-static void GridEye_Thread(void const *argument);
+static void IrSensor_Thread(void const *argument);
 static void ReadKeys_Thread(void const *argument);
 static void SwapBuffers_Thread(void const *argument);
 
@@ -57,7 +60,7 @@ int main()
 	SystemClock_Config();
 
 	/* Init I2C3 */
-	IOE_Init();
+	I2Cx_Init();
 
 	DMA2D_Config();
 
@@ -72,21 +75,19 @@ int main()
 	fbInfoLayer.setOrientation(LANDSCAPE);
 	fbInfoLayer.clear(0x00000000);
 
-	irSensor.init(&dma2dHandle, 1, FRAMEBUFFER_ADDR, 320, 240, ALTERNATE_COLOR_SCHEME);
+	isSensorReady = irSensor.init(&dma2dHandle, 1, FRAMEBUFFER_ADDR, 320, 240, ALTERNATE_COLOR_SCHEME);
   
 	osThreadDef(LED3, LED_Thread1, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(LED4, LED_Thread2, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(LDTC, LTDC_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE + 128);
-	osThreadDef(SDRAM, SDRAM_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
-	osThreadDef(GRID_EYE, GridEye_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
+	osThreadDef(IR_SENSOR, IrSensor_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE + 2048);
 	osThreadDef(READ_KEYS, ReadKeys_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
 	osThreadDef(SWAP_BUFFERS, SwapBuffers_Thread, osPriorityNormal, 0, configMINIMAL_STACK_SIZE);
   
 	LEDThread1Handle = osThreadCreate(osThread(LED3), NULL);
 	LEDThread2Handle = osThreadCreate(osThread(LED4), NULL);
 	LTDCThreadHandle = osThreadCreate(osThread(LDTC), NULL);
-	SDRAMThreadHandle = osThreadCreate(osThread(SDRAM), NULL);
-	GridEyeThreadHandle = osThreadCreate(osThread(GRID_EYE), NULL);
+	IRSensorThreadHandle = osThreadCreate(osThread(IR_SENSOR), NULL);
 	ReadKeysTaskHandle = osThreadCreate(osThread(READ_KEYS), NULL);
 	SwapBuffersTaskHandle = osThreadCreate(osThread(SWAP_BUFFERS), NULL);
   
@@ -96,6 +97,17 @@ int main()
 	/* We should never get here as control is now taken by the scheduler */
 	while (true)
 	{
+	}
+}
+
+static void showSP()
+{
+	const uint16_t sp = irSensor.getSubPage();
+	if (sp == 0)
+	{
+		BSP_LED_On(LED3);
+	} else {
+		BSP_LED_Off(LED3);
 	}
 }
 
@@ -110,8 +122,15 @@ static void LED_Thread1(void const *argument)
   
 	for (;;)
 	{
-		BSP_LED_Toggle(LED3);
-		osDelay(500);
+		/*if (sp == 1)
+		{
+			BSP_LED_On(LED3);
+		} else
+		{
+			BSP_LED_Off(LED3);
+		}*/
+		// BSP_LED_Toggle(LED3);
+		osDelay(1000);
 	}
 }
 
@@ -130,28 +149,37 @@ static void LED_Thread2(void const *argument)
 	}
 }
 
-static void SDRAM_Thread(void const *argument)
+static void IrSensor_Thread(void const *argument)
 {
-	(void) argument;  
+	(void) argument;
 	for (;;)
 	{
-		osDelay(1000);
+		if (isSensorReady) {
+			while(!irSensor.isFrameReady())
+			{
+				inWait = inWait + 1;
+				osDelay(5);
+			}
+			const TickType_t xTime1 = xTaskGetTickCount();
+			irSensor.readImage(0.95f); //first subpage
+			const TickType_t xTime2 = xTaskGetTickCount();
+			xExecutionTime = xTime2 - xTime1;
+			showSP();
+			while(!irSensor.isFrameReady())
+			{
+				inWait = inWait + 1;
+				osDelay(5);
+			}
+			irSensor.readImage(0.95f);// second subpage
+			showSP();
+			irSensor.findMinAndMaxTemp();
+			isSensorReadDone = true;
+		}
+		osDelay(10);
 	}
 }
 
-static void GridEye_Thread(void const *argument)
-{
-	(void) argument;	
-	for (;;)
-	{
-		irSensor.readImage();
-		if (!sensorReady)
-		{
-			sensorReady = true;
-		}
-		osDelay(90);
-	}
-}
+
 
 static void LTDC_Thread(void const *argument)
 {
@@ -162,27 +190,26 @@ static void LTDC_Thread(void const *argument)
 	/* reconfigure the layer2 position  without Reloading*/
 	//HAL_LTDC_SetWindowPosition_NoReload(&LtdcHandle, 0, 0, 1);
 
-	TickType_t xExecutionTime = 0;
-	uint8_t minTemp = 0;
-	uint8_t maxTemp = 0;
-	uint8_t coldDotX = 0;
-	uint8_t coldDotY = 0;
-	uint8_t hotDotX = 0;
-	uint8_t hotDotY = 0;
+	uint16_t minTemp = 0;
+	uint16_t maxTemp = 0;
+	uint16_t coldDotX = 0;
+	uint16_t coldDotY = 0;
+	uint16_t hotDotX = 0;
+	uint16_t hotDotY = 0;
 
 	uint16_t cpuUsage = 0;
-	const uint8_t hpUpdDelay = 10;
+	const uint8_t hpUpdDelay = 20;
 	uint8_t cntr = hpUpdDelay;
 	bool oneTimeActionDone = false;
 
 	for (;;)
 	{
-		if (sensorReady)
+		if (isSensorReady)
 		{
-			const TickType_t xTime1 = xTaskGetTickCount();
-			
-			irSensor.visualizeImage(THERMAL_RESOLUTION, THERMAL_RESOLUTION, vis_mode);
-			if (!oneTimeActionDone)
+			// const TickType_t xTime1 = xTaskGetTickCount();
+
+			irSensor.visualizeImage(THERMAL_SCALE, vis_mode);
+			if (!oneTimeActionDone && isSensorReadDone)
 			{
 				irSensor.drawGradient(244, 50, 254, 225);	
 				oneTimeActionDone = true;
@@ -191,33 +218,38 @@ static void LTDC_Thread(void const *argument)
 			if (cntr >= hpUpdDelay)
 			{
 				cntr = 0;
-				const uint8_t hotDot = irSensor.getHotDotIndex();
-				hotDotX = hotDot / 8;
-				hotDotY = hotDot % 8;
-				const uint8_t coldDot = irSensor.getColdDotIndex();
-				coldDotX = coldDot / 8;
-				coldDotY = coldDot % 8;
+				const uint16_t hotDotIdx = irSensor.getHotDotIndex();
+				hotDotX = 31 - (hotDotIdx % 32);
+				hotDotY = 23 - (hotDotIdx / 32);
+				const uint16_t coldDotIdx = irSensor.getColdDotIndex();
+				coldDotX = 31 - (coldDotIdx % 32);
+				coldDotY = 23 - (coldDotIdx / 32);
 				cpuUsage = osGetCPUUsage();
-				maxTemp = irSensor.getMaxTemp();
-				minTemp = irSensor.getMinTemp();
+				maxTemp = (int16_t)irSensor.getMaxTemp();
+				minTemp = (int16_t)irSensor.getMinTemp();
 
 				fbInfoLayer.clear(0x00000000);
 
-				fbInfoLayer.printf(hotDotX * (THERMAL_RESOLUTION / 8), hotDotY * (THERMAL_RESOLUTION / 8), ARGB_COLOR_BLACK | 0x8000, ARGB_COLOR_BLACK, "%u\x81", maxTemp);
-				fbInfoLayer.printf(coldDotX * (THERMAL_RESOLUTION / 8), coldDotY * (THERMAL_RESOLUTION / 8), ARGB_COLOR_GREEN | 0x8000, ARGB_COLOR_BLACK, "%u\x81", minTemp);
-				fbInfoLayer.printf(244, 25, "VM: %u", vis_mode);
+				fbInfoLayer.printf(hotDotX * THERMAL_SCALE, hotDotY * THERMAL_SCALE, ARGB_COLOR_BLACK | 0x8000, ARGB_COLOR_BLACK, "%u\x81", maxTemp);
+				fbInfoLayer.printf(coldDotX * THERMAL_SCALE, coldDotY * THERMAL_SCALE, ARGB_COLOR_GREEN | 0x8000, ARGB_COLOR_BLACK, "%u\x81", minTemp);
 				fbInfoLayer.printf(244, 0, "CPU: %u%%", cpuUsage);
 				fbInfoLayer.printf(244, 12, "T: %04u", xExecutionTime);
+				fbInfoLayer.printf(244, 24, "W: %04u", inWait);
 				fbInfoLayer.printf(244, 225, ARGB_COLOR_RED | 0x8000, ARGB_COLOR_BLACK, "MAX:%u\x81", maxTemp);
 				fbInfoLayer.printf(244, 38, ARGB_COLOR_GREEN | 0x8000, ARGB_COLOR_BLACK, "MIN:%u\x81", minTemp);
+
+				// const TickType_t xTime2 = xTaskGetTickCount();
+				// xExecutionTime = xTime2 - xTime1;
 			}
 			cntr++;
-
-			const TickType_t xTime2 = xTaskGetTickCount();
-			xExecutionTime = xTime2 - xTime1;
+		}
+		else
+		{
+			fbInfoLayer.clear(0x00000000);
+			fbInfoLayer.printf(10, 110, "SENSOR ERROR");
 		}
 				
-		osDelay(75);
+		osDelay(20);
 	}
 }
 

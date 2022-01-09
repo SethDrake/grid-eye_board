@@ -14,7 +14,7 @@
     <VCProjectVersion>15.0</VCProjectVersion>
     <ProjectGuid>{7A1524EF-0131-436F-8393-BB87EB4B74FA}</ProjectGuid>
     <BSP_ID>com.sysprogs.arm.stm32</BSP_ID>
-    <BSP_VERSION>2020.10</BSP_VERSION>
+    <BSP_VERSION>2021.02</BSP_VERSION>
     <InPlaceBSPSubdir />
     <RelativeBSPPath />
   </PropertyGroup>
@@ -34,11 +34,11 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|VisualGDB'">
     <GNUConfigurationType>Debug</GNUConfigurationType>
     <ToolchainID>com.visualgdb.arm-eabi</ToolchainID>
-    <ToolchainVersion>9.3.1/9.2.0/r2</ToolchainVersion>
+    <ToolchainVersion>10.3.1/10.2.90/r1</ToolchainVersion>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|VisualGDB'">
     <ToolchainID>com.visualgdb.arm-eabi</ToolchainID>
-    <ToolchainVersion>9.3.1/9.2.0/r2</ToolchainVersion>
+    <ToolchainVersion>10.3.1/10.2.90/r1</ToolchainVersion>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|VisualGDB'">
     <ClCompile>
@@ -81,13 +81,10 @@
     <ClCompile Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\components\ili9341\ili9341.c" />
     <ClCompile Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\components\stmpe811\stmpe811.c" />
     <ClCompile Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery.c" />
-    <ClCompile Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_io.c" />
     <ClCompile Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_sdram.c" />
     <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\components\ili9341\ili9341.h" />
-    <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\components\stmpe811\stmpe811.h" />
     <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\fonts\fonts.h" />
     <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery.h" />
-    <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_io.h" />
     <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_sdram.h" />
     <None Include="stm32.props" />
     <ClCompile Include="$(BSP_ROOT)\STM32F4xxxx\StartupFiles\startup_stm32f429xx.c" />

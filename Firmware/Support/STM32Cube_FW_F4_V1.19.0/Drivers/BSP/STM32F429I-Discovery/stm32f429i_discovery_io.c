@@ -108,18 +108,18 @@ uint8_t BSP_IO_Init(void)
   uint8_t ret = IO_ERROR;
   
   /* Read ID and verify the IO expander is ready */
-  if(stmpe811_io_drv.ReadID(IO_I2C_ADDRESS) == STMPE811_ID)
-  {
-    /* Initialize the IO driver structure */
-    IoDrv = &stmpe811_io_drv;
-    ret = IO_OK;
-  }
+  // if(stmpe811_io_drv.ReadID(IO_I2C_ADDRESS) == STMPE811_ID)
+  // {
+  //   /* Initialize the IO driver structure */
+  //   IoDrv = &stmpe811_io_drv;
+  //   ret = IO_OK;
+  // }
 
-  if(ret == IO_OK)
-  {
-    IoDrv->Init(IO_I2C_ADDRESS);
-    IoDrv->Start(IO_I2C_ADDRESS, IO_PIN_ALL);
-  }
+  // if(ret == IO_OK)
+  // {
+  //   IoDrv->Init(IO_I2C_ADDRESS);
+  //   IoDrv->Start(IO_I2C_ADDRESS, IO_PIN_ALL);
+  // }
   return ret;
 }
 

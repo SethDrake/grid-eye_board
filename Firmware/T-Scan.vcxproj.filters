@@ -851,21 +851,12 @@
     <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery.h">
       <Filter>Header files\Device-specific files</Filter>
     </ClInclude>
-    <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_io.h">
-      <Filter>Header files\Device-specific files</Filter>
-    </ClInclude>
     <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_sdram.h">
-      <Filter>Header files\Device-specific files</Filter>
-    </ClInclude>
-    <ClInclude Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\components\stmpe811\stmpe811.h">
       <Filter>Header files\Device-specific files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery.c">
-      <Filter>Source files\Device-specific files</Filter>
-    </ClCompile>
-    <ClCompile Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_io.c">
       <Filter>Source files\Device-specific files</Filter>
     </ClCompile>
     <ClCompile Include="Support\STM32Cube_FW_F4_V1.19.0\Drivers\BSP\STM32F429I-Discovery\stm32f429i_discovery_sdram.c">

@@ -1,13 +1,13 @@
 <?xml version="1.0"?>
-<EmbeddedProfile xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema">
+<EmbeddedProfile xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
   <ToolchainID>com.visualgdb.arm-eabi</ToolchainID>
   <ToolchainVersion>
-    <GCC>9.3.1</GCC>
-    <GDB>9.2.0</GDB>
-    <Revision>2</Revision>
+    <GCC>10.3.1</GCC>
+    <GDB>10.2.90</GDB>
+    <Revision>1</Revision>
   </ToolchainVersion>
   <BspID>com.sysprogs.arm.stm32</BspID>
-  <BspVersion>2020.10</BspVersion>
+  <BspVersion>2021.02</BspVersion>
   <McuID>STM32F429ZI</McuID>
   <MCUDefinitionFile>STM32F4xxxx/DeviceDefinitions/stm32f429xx.xml</MCUDefinitionFile>
   <MCUProperties>
@@ -40,6 +40,7 @@
     <string>com.sysprogs.arm.stm32.utilities</string>
     <string>com.sysprogs.arm.stm32.hal</string>
     <string>com.sysprogs.arm.stm32.ll</string>
+    <string>com.sysprogs.arm.stm32.STM32F4_ll</string>
   </ReferencedFrameworks>
   <FrameworkProperties>
     <Entries>

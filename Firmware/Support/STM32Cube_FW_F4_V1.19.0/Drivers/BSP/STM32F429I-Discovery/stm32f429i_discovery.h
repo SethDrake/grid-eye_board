@@ -178,7 +178,7 @@ typedef enum
    Make sure that this define is not already declared in other files.
    It can be used in parallel by other modules. */
 #ifndef BSP_I2C_SPEED
- #define BSP_I2C_SPEED                          400000
+ #define BSP_I2C_SPEED                          800000
 #endif /* BSP_I2C_SPEED */
 
 #define I2Cx_TIMEOUT_MAX                    0x3000 /*<! The value of the maximal timeout for I2C waiting loops */
@@ -321,6 +321,17 @@ void     BSP_LED_Off(Led_TypeDef Led);
 void     BSP_LED_Toggle(Led_TypeDef Led);
 void     BSP_PB_Init(Button_TypeDef Button, ButtonMode_TypeDef ButtonMode);
 uint32_t BSP_PB_GetState(Button_TypeDef Button);
+
+void     I2Cx_Init(void);
+void     I2Cx_ITConfig(void);
+void     I2Cx_WriteData(uint8_t Addr, uint8_t Reg, uint8_t Value);
+void     I2Cx_WriteData16(uint8_t Addr, uint16_t Reg, uint16_t Value);
+void     I2Cx_WriteBuffer(uint8_t Addr, uint8_t Reg,  uint8_t *pBuffer, uint16_t Length);
+void     I2Cx_WriteBuffer16(uint8_t Addr, uint16_t Reg, uint16_t *pBuffer, uint16_t Length);
+uint8_t  I2Cx_ReadData(uint8_t Addr, uint8_t Reg);
+uint16_t  I2Cx_ReadData16(uint8_t Addr, uint16_t Reg);
+uint8_t  I2Cx_ReadBuffer(uint8_t Addr, uint8_t Reg, uint8_t *pBuffer, uint16_t Length);
+uint8_t  I2Cx_ReadBuffer16(uint8_t Addr, uint16_t Reg, uint16_t *pBuffer, uint16_t Length);
 
 /**
   * @}

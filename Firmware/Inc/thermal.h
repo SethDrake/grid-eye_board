@@ -2,9 +2,9 @@
 #ifndef __THERMAL_H
 #define __THERMAL_H
 
-#include "stm32f429i_discovery_io.h"
+#include "stm32f429i_discovery.h"
+#include <mlx90640.h>
 
-#define GRID_EYE_ADDR 0xD0
 #define THERM_COEFF 0.0625
 #define TEMP_COEFF 0.25
 
@@ -12,25 +12,41 @@ class IRSensor {
 public:
 	IRSensor();
 	~IRSensor();
-	void init(DMA2D_HandleTypeDef* dma2dHandler, uint8_t layer, const uint32_t fb_addr, const uint16_t fbSizeX, const uint16_t fbSizeY, const uint8_t* colorScheme);
+	bool init(DMA2D_HandleTypeDef* dma2dHandler, uint8_t layer, const uint32_t fb_addr, const uint16_t fbSizeX, const uint16_t fbSizeY, const uint8_t* colorScheme);
 	void setColorScheme(const uint8_t* colorScheme);
 	void setFbAddress(const uint32_t fb_addr);
 	void setFbSize(const uint16_t fbSizeX, const uint16_t fbSizeY);
-	float readThermistor();
-	void readImage();
+	uint16_t* readSerialNumber();
+	void readMlxEE();
+	void convertMlxEEToParams();
+	mlx90640_refreshrate_t readRefreshRate();
+	void setRefreshRate(mlx90640_refreshrate_t rate);
+	mlx90640_resolution_t readADCResolution();
+	void setADCResolution(mlx90640_resolution_t resolution);
+	mlx90640_mode_t readMlxMode();
+	void setMlxMode(mlx90640_mode_t mode);
+	bool isFrameReady();
+	void readImage(float emissivity);
+	void calculateTempMap(float emissivity, float tr);
+	void calculateImageMap();
+	void findMinAndMaxTemp();
+	uint16_t getSubPage();
+	float getVdd();
+	float getTa();
 	float* getTempMap();
 	float getMaxTemp();
 	float getMinTemp();
-	uint8_t getHotDotIndex();
-	uint8_t getColdDotIndex();
+	uint16_t getHotDotIndex();
+	uint16_t getColdDotIndex();
 	uint16_t temperatureToRGB565(float temperature, float minTemp, float maxTemp);
-	void visualizeImage(uint8_t resX, uint8_t resY, const uint8_t method);
+	void visualizeImage(uint8_t scale, uint8_t method);
 	void drawGradient(uint8_t startX, uint8_t startY, uint8_t stopX, uint8_t stopY);
 	void Dma2dXferCpltCallback(DMA2D_HandleTypeDef *hdma2d);
 protected:
-	void findMinAndMaxTemp();
 	uint16_t rgb2color(uint8_t R, uint8_t G, uint8_t B);
 	uint8_t calculateRGB(uint8_t rgb1, uint8_t rgb2, float t1, float step, float t);
+	uint8_t IsPixelBad(uint16_t index);
+	uint8_t CheckAdjacentPixels(uint16_t pix1, uint16_t pix2);
 private:
 	DMA2D_HandleTypeDef* dma2dHandler;
 	uint8_t layer;
@@ -38,15 +54,21 @@ private:
 	uint16_t fbSizeX;
 	uint16_t fbSizeY;
 	const uint8_t* colorScheme;
-	float dots[64];
-	uint16_t colors[64];
-	uint8_t coldDotIndex;
-	uint8_t hotDotIndex;
+	paramsMLX90640_t mlxParams;
+	uint16_t mlxEE[832];
+	uint16_t frameData[834];
+	float vdd;
+	float ta;
+	float dots[24*32];
+	uint16_t colors[24*32];
+	uint16_t coldDotIndex;
+	uint16_t hotDotIndex;
 	float minTemp;
 	float maxTemp;
-	float rawHLtoTemp(uint8_t rawL, uint8_t rawH, float coeff);
 	const float minTempCorr = -0.5;
-	const float maxTempCorr = + 0.5;
+	const float maxTempCorr = 0.5;
+
+	uint16_t mlxSerialNumber[3];
 };
 
 

@@ -112,12 +112,6 @@ static uint8_t Is_LCD_IO_Initialized = 0;
   * @{
   */ 
 /* I2Cx bus function */
-static void               I2Cx_Init(void);
-static void               I2Cx_ITConfig(void);
-static void               I2Cx_WriteData(uint8_t Addr, uint8_t Reg, uint8_t Value);
-static void               I2Cx_WriteBuffer(uint8_t Addr, uint8_t Reg,  uint8_t *pBuffer, uint16_t Length);
-static uint8_t            I2Cx_ReadData(uint8_t Addr, uint8_t Reg);
-static uint8_t            I2Cx_ReadBuffer(uint8_t Addr, uint8_t Reg, uint8_t *pBuffer, uint16_t Length);
 static void               I2Cx_Error(void);
 static void               I2Cx_MspInit(I2C_HandleTypeDef *hi2c);  
 #ifdef EE_M24LR64
@@ -140,15 +134,6 @@ void                      LCD_IO_WriteData(uint16_t RegValue);
 void                      LCD_IO_WriteReg(uint8_t Reg);
 uint32_t                  LCD_IO_ReadData(uint16_t RegValue, uint8_t ReadSize);
 void                      LCD_Delay(uint32_t delay);
-
-/* IOExpander IO functions */
-void                      IOE_Init(void);
-void                      IOE_ITConfig(void);
-void                      IOE_Delay(uint32_t Delay);
-void                      IOE_Write(uint8_t Addr, uint8_t Reg, uint8_t Value);
-uint8_t                   IOE_Read(uint8_t Addr, uint8_t Reg);
-uint16_t                  IOE_ReadMultiple(uint8_t Addr, uint8_t Reg, uint8_t *pBuffer, uint16_t Length);
-void                      IOE_WriteMultiple(uint8_t Addr, uint8_t Reg, uint8_t *pBuffer, uint16_t Length);
 
 /* Link function for GYRO peripheral */
 void                      GYRO_IO_Init(void);
@@ -345,12 +330,12 @@ static void I2Cx_MspInit(I2C_HandleTypeDef *hi2c)
     DISCOVERY_I2Cx_RELEASE_RESET(); 
     
     /* Enable and set Discovery I2Cx Interrupt to the lowest priority */
-    HAL_NVIC_SetPriority(DISCOVERY_I2Cx_EV_IRQn, 0x0F, 0);
-    HAL_NVIC_EnableIRQ(DISCOVERY_I2Cx_EV_IRQn);
+    // HAL_NVIC_SetPriority(DISCOVERY_I2Cx_EV_IRQn, 0x0F, 0);
+    // HAL_NVIC_EnableIRQ(DISCOVERY_I2Cx_EV_IRQn);
     
     /* Enable and set Discovery I2Cx Interrupt to the lowest priority */
-    HAL_NVIC_SetPriority(DISCOVERY_I2Cx_ER_IRQn, 0x0F, 0);
-    HAL_NVIC_EnableIRQ(DISCOVERY_I2Cx_ER_IRQn);  
+    // HAL_NVIC_SetPriority(DISCOVERY_I2Cx_ER_IRQn, 0x0F, 0);
+    // HAL_NVIC_EnableIRQ(DISCOVERY_I2Cx_ER_IRQn);  
 
 #ifdef EE_M24LR64
     /* I2C DMA TX and RX channels configuration */
@@ -417,7 +402,7 @@ static void I2Cx_MspInit(I2C_HandleTypeDef *hi2c)
 /**
   * @brief  I2Cx Bus initialization.
   */
-static void I2Cx_Init(void)
+void I2Cx_Init(void)
 {
   if(HAL_I2C_GetState(&I2cHandle) == HAL_I2C_STATE_RESET)
   {
@@ -440,7 +425,7 @@ static void I2Cx_Init(void)
 /**
   * @brief  Configures Interruption pin for I2C communication.
   */
-static void I2Cx_ITConfig(void)
+void I2Cx_ITConfig(void)
 {
   GPIO_InitTypeDef  GPIO_InitStruct;
     
@@ -464,11 +449,26 @@ static void I2Cx_ITConfig(void)
   * @param  Reg: The target register address to write
   * @param  Value: The target register value to be written 
   */
-static void I2Cx_WriteData(uint8_t Addr, uint8_t Reg, uint8_t Value)
+void I2Cx_WriteData(uint8_t Addr, uint8_t Reg, uint8_t Value)
   {
   HAL_StatusTypeDef status = HAL_OK;
   
   status = HAL_I2C_Mem_Write(&I2cHandle, Addr, (uint16_t)Reg, I2C_MEMADD_SIZE_8BIT, &Value, 1, I2cxTimeout); 
+  
+  /* Check the communication status */
+  if(status != HAL_OK)
+  {
+    /* Re-Initialize the BUS */
+    I2Cx_Error();
+  }        
+}
+
+void I2Cx_WriteData16(uint8_t Addr, uint16_t Reg, uint16_t Value)
+{
+  HAL_StatusTypeDef status = HAL_OK;
+  uint16_t val = __builtin_bswap16(Value);
+  
+  status = HAL_I2C_Mem_Write(&I2cHandle, Addr, Reg, I2C_MEMADD_SIZE_16BIT, (uint8_t*)&val, 2, I2cxTimeout); 
   
   /* Check the communication status */
   if(status != HAL_OK)
@@ -485,11 +485,31 @@ static void I2Cx_WriteData(uint8_t Addr, uint8_t Reg, uint8_t Value)
   * @param  pBuffer: The target register value to be written 
   * @param  Length: buffer size to be written
   */
-static void I2Cx_WriteBuffer(uint8_t Addr, uint8_t Reg,  uint8_t *pBuffer, uint16_t Length)
+void I2Cx_WriteBuffer(uint8_t Addr, uint8_t Reg,  uint8_t *pBuffer, uint16_t Length)
   {
   HAL_StatusTypeDef status = HAL_OK;
   
   status = HAL_I2C_Mem_Write(&I2cHandle, Addr, (uint16_t)Reg, I2C_MEMADD_SIZE_8BIT, pBuffer, Length, I2cxTimeout); 
+
+  /* Check the communication status */
+  if(status != HAL_OK)
+  {
+    /* Re-Initialize the BUS */
+    I2Cx_Error();
+  }        
+}
+
+void I2Cx_WriteBuffer16(uint8_t Addr, uint16_t Reg,  uint16_t *pBuffer, uint16_t Length)
+  {
+  HAL_StatusTypeDef status = HAL_OK;
+
+  // swap bytes
+  for(uint16_t i = 0; i < Length/2; i++)
+  {
+  	pBuffer[i] = __builtin_bswap16(pBuffer[i]);
+  }	
+    
+  status = HAL_I2C_Mem_Write(&I2cHandle, Addr, Reg, I2C_MEMADD_SIZE_16BIT, (uint8_t*)pBuffer, Length, I2cxTimeout); 
 
   /* Check the communication status */
   if(status != HAL_OK)
@@ -505,7 +525,7 @@ static void I2Cx_WriteBuffer(uint8_t Addr, uint8_t Reg,  uint8_t *pBuffer, uint1
   * @param  Reg: The target register address to write
   * @retval Data read at register address
   */
-static uint8_t I2Cx_ReadData(uint8_t Addr, uint8_t Reg)
+uint8_t I2Cx_ReadData(uint8_t Addr, uint8_t Reg)
 {
   HAL_StatusTypeDef status = HAL_OK;
   uint8_t value = 0;
@@ -522,6 +542,23 @@ static uint8_t I2Cx_ReadData(uint8_t Addr, uint8_t Reg)
   return value;
 }
 
+uint16_t I2Cx_ReadData16(uint8_t Addr, uint16_t Reg)
+{
+  HAL_StatusTypeDef status = HAL_OK;
+  uint16_t value = 0;
+  
+  status = HAL_I2C_Mem_Read(&I2cHandle, Addr, Reg, I2C_MEMADD_SIZE_16BIT, (uint8_t*)&value, 2, I2cxTimeout);
+ 
+  /* Check the communication status */
+  if(status != HAL_OK)
+  {
+    /* Re-Initialize the BUS */
+    I2Cx_Error();
+  
+  }
+  return __builtin_bswap16(value);
+}
+
 /**
   * @brief  Reads multiple data on the BUS.
   * @param  Addr: I2C Address
@@ -530,7 +567,7 @@ static uint8_t I2Cx_ReadData(uint8_t Addr, uint8_t Reg)
   * @param  Length: length of the data
   * @retval 0 if no problems to read multiple data
   */
-static uint8_t I2Cx_ReadBuffer(uint8_t Addr, uint8_t Reg, uint8_t *pBuffer, uint16_t Length)
+uint8_t I2Cx_ReadBuffer(uint8_t Addr, uint8_t Reg, uint8_t *pBuffer, uint16_t Length)
 {
   HAL_StatusTypeDef status = HAL_OK;
 
@@ -540,6 +577,32 @@ static uint8_t I2Cx_ReadBuffer(uint8_t Addr, uint8_t Reg, uint8_t *pBuffer, uint
   if(status == HAL_OK)
   {
     return 0;
+  }
+  else
+  {
+    /* Re-Initialize the BUS */
+    I2Cx_Error();
+
+    return 1;
+  }
+}
+
+uint8_t I2Cx_ReadBuffer16(uint8_t Addr, uint16_t Reg, uint16_t *pBuffer, uint16_t Length)
+{
+  HAL_StatusTypeDef status = HAL_OK;
+
+  status = HAL_I2C_Mem_Read(&I2cHandle, Addr, Reg, I2C_MEMADD_SIZE_16BIT, (uint8_t*)pBuffer, Length, I2cxTimeout);
+  
+  /* Check the communication status */
+  if(status == HAL_OK)
+  {
+    // swap bytes
+  	for(uint16_t i = 0; i < Length/2; i++)
+	{
+		pBuffer[i] = __builtin_bswap16(pBuffer[i]);
+	}	
+
+  	return 0;
   }
   else
   {
@@ -876,80 +939,6 @@ void LCD_Delay(uint32_t Delay)
 /*******************************************************************************
                             LINK OPERATIONS
 *******************************************************************************/
-
-/********************************* LINK IOE ***********************************/
-
-/**
-  * @brief  IOE Low Level Initialization.
-  */
-void IOE_Init(void) 
-{
-  I2Cx_Init();
-}
-
-/**
-  * @brief  IOE Low Level Interrupt configuration.
-  */
-void IOE_ITConfig(void)
-{
-  I2Cx_ITConfig();
-}
-
-/**
-  * @brief  IOE Writes single data operation.
-  * @param  Addr: I2C Address
-  * @param  Reg: Reg Address 
-  * @param  Value: Data to be written
-  */
-void IOE_Write(uint8_t Addr, uint8_t Reg, uint8_t Value)
-{
-  I2Cx_WriteData(Addr, Reg, Value);
-}
-
-/**
-  * @brief  IOE Reads single data.
-  * @param  Addr: I2C Address
-  * @param  Reg: Reg Address 
-  * @retval The read data
-  */
-uint8_t IOE_Read(uint8_t Addr, uint8_t Reg)
-{
-  return I2Cx_ReadData(Addr, Reg);
-}
-
-/**
-  * @brief  IOE Writes multiple data.
-  * @param  Addr: I2C Address
-  * @param  Reg: Reg Address 
-  * @param  pBuffer: pointer to data buffer
-  * @param  Length: length of the data
-  */
-void IOE_WriteMultiple(uint8_t Addr, uint8_t Reg, uint8_t *pBuffer, uint16_t Length)
-{
-  I2Cx_WriteBuffer(Addr, Reg, pBuffer, Length);
-}
-
-/**
-  * @brief  IOE Reads multiple data.
-  * @param  Addr: I2C Address
-  * @param  Reg: Reg Address 
-  * @param  pBuffer: pointer to data buffer
-  * @param  Length: length of the data
-  * @retval 0 if no problems to read multiple data
-  */
-uint16_t IOE_ReadMultiple(uint8_t Addr, uint8_t Reg, uint8_t *pBuffer, uint16_t Length)
-{
- return I2Cx_ReadBuffer(Addr, Reg, pBuffer, Length);
-}
-
-/**
-  * @brief  IOE Delay.
-  * @param  Delay in ms
-  */
-void IOE_Delay(uint32_t Delay)
-{
-  HAL_Delay(Delay);
-}
 
 /********************************* LINK GYROSCOPE *****************************/
 
