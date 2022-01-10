@@ -1242,7 +1242,7 @@ uint16_t IRSensor::temperatureToRGB565(const float temperature, const float minT
 		val = rgb2color(colorScheme[0], colorScheme[1], colorScheme[2]);
 	}
 	else if (temperature >= maxTemp) {
-		const short colorSchemeSize = sizeof(DEFAULT_COLOR_SCHEME);
+		const uint16_t colorSchemeSize = sizeof(DEFAULT_COLOR_SCHEME)/3;
 		val = rgb2color(colorScheme[(colorSchemeSize - 1) * 3 + 0], colorScheme[(colorSchemeSize - 1) * 3 + 1], colorScheme[(colorSchemeSize - 1) * 3 + 2]);
 	}
 	else {
