@@ -26,6 +26,7 @@ public:
 	mlx90640_mode_t readMlxMode();
 	void setMlxMode(mlx90640_mode_t mode);
 	bool isFrameReady();
+	bool isImageReady();
 	void readImage(float emissivity);
 	void calculateTempMap(float emissivity, float tr);
 	void calculateImageMap();
@@ -49,6 +50,7 @@ protected:
 	uint8_t CheckAdjacentPixels(uint16_t pix1, uint16_t pix2);
 private:
 	DMA2D_HandleTypeDef* dma2dHandler;
+	volatile bool _isImageReady;
 	uint8_t layer;
 	uint32_t fb_addr;
 	uint16_t fbSizeX;

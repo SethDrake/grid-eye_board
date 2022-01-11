@@ -14,7 +14,7 @@ Framebuffer fbInfoLayer;
 IRSensor irSensor;
 
 volatile uint32_t ReloadFlag = 0;
-volatile uint8_t vis_mode = 0;
+volatile uint8_t vis_mode = 1;
 volatile bool isSensorReady = false;
 volatile bool isSensorReadDone = false;
 volatile bool isFrameReady = false;
@@ -209,6 +209,7 @@ static void LTDC_Thread(void const *argument)
 			// const TickType_t xTime1 = xTaskGetTickCount();
 
 			irSensor.visualizeImage(THERMAL_SCALE, vis_mode);
+
 			if (!oneTimeActionDone && isSensorReadDone)
 			{
 				irSensor.drawGradient(250, 50, 260, 225);	
@@ -234,7 +235,7 @@ static void LTDC_Thread(void const *argument)
 				fbInfoLayer.printf(coldDotX * THERMAL_SCALE, coldDotY * THERMAL_SCALE, ARGB_COLOR_GREEN | 0x8000, ARGB_COLOR_BLACK, "%u\x81", minTemp);
 				fbInfoLayer.printf(250, 0, "CPU: %u%%", cpuUsage);
 				fbInfoLayer.printf(250, 12, "T: %04u", xExecutionTime);
-				fbInfoLayer.printf(250, 24, "W: %04u", inWait);
+				fbInfoLayer.printf(250, 24, "V: %04u", vis_mode);
 				fbInfoLayer.printf(250, 225, ARGB_COLOR_RED | 0x8000, ARGB_COLOR_BLACK, "MAX:%u\x81", maxTemp);
 				fbInfoLayer.printf(250, 38, ARGB_COLOR_GREEN | 0x8000, ARGB_COLOR_BLACK, "MIN:%u\x81", minTemp);
 

@@ -40,15 +40,7 @@ bool IRSensor::init(DMA2D_HandleTypeDef* dma2dHandler, uint8_t layer, const uint
 	    return false;
     }
 
-    // for(uint16_t i = 0; i < sizeof(newEE)/2; i++)
-    // {
-	   //  I2Cx_WriteData16(MLX90640_ADDR, 0x2410 + i, 0x0000);
-    //     HAL_Delay(10);
-    //     I2Cx_WriteData16(MLX90640_ADDR, 0x2410 + i, newEE[i]);
-    //     HAL_Delay(10);
-    // }
-
-     setADCResolution(MLX90640_ADC_18BIT);
+    setADCResolution(MLX90640_ADC_18BIT);
     setRefreshRate(MLX90640_16_HZ);
     setMlxMode(MLX90640_CHESS);
 
@@ -1086,6 +1078,8 @@ void IRSensor::visualizeImage(const uint8_t scale, const uint8_t method)
 
 	volatile uint16_t* pSdramAddress = (uint16_t *)this->fb_addr;
 
+	_isImageReady = false;
+
 	if (method == 0)
 	{
         for (uint16_t i = 0; i < 32 * 24; i++)
@@ -1115,10 +1109,60 @@ void IRSensor::visualizeImage(const uint8_t scale, const uint8_t method)
 	}
 	else if (method == 1)
 	{
-		/*float tmp, u, t, d1, d2, d3, d4;
+		float tmp, u, t, d1, d2, d3, d4;
 		float p1, p2, p3, p4;
+
+        for (uint16_t i = 0; i < 32 * 24; i++)
+		{
+			colors[i] = this->temperatureToRGB565(dots[i], minTemp + minTempCorr, maxTemp + maxTempCorr);		
+		}
+
+        col = 32 * scale;
+		while(col > 0)
+		{
+            t = col / (float)scale;
+			int16_t x = (int16_t)t;
+            if (x >= 31)
+            {
+	            x--;
+            }
+            t = t - x;
+
+			row = 24 * scale;
+			while(row > 0)
+			{
+				u = row / (float)scale;
+				int16_t y = (int16_t)u;
+	            if (y >= 23)
+	            {
+		            y--;
+	            }
+	            u = u - y;
+
+                d1 = (1 - t) * (1 - u);
+				d2 = t * (1 - u);
+				d3 = t * u;
+				d4 = (1 - t) * u;
+
+				p1 = dots[y * 32 + x];
+				p2 = dots[y * 32 + x + 1];
+				p3 = dots[(y + 1) * 32 + x + 1];
+				p4 = dots[(y + 1) * 32 + x];
+
+				float interp = p1*d1 + p2*d2 + p3*d3 + p4*d4;
+
+				// pixelIdx = (y * 32) + x;
+
+                *(volatile uint16_t *)pSdramAddress = this->temperatureToRGB565(interp, minTemp + minTempCorr, maxTemp + maxTempCorr);
+	            pSdramAddress++;
+
+				row--;
+			}
+            pSdramAddress += (240 - (24 * scale));
+			col--;
+		}
 		
-		for (uint16_t j = 0; j < resY; j++) {
+		/*for (uint16_t j = 0; j < resY; j++) {
 			tmp = (float)(j) / (float)(resY - 1) * (8 - 1);
 			int16_t h = (int16_t)tmp;
 			if (h >= 8 - 1) {
@@ -1151,8 +1195,15 @@ void IRSensor::visualizeImage(const uint8_t scale, const uint8_t method)
 				*(volatile uint16_t *)pSdramAddress = this->temperatureToRGB565(temp, minTemp + minTempCorr, maxTemp + maxTempCorr);
 				pSdramAddress++;
 			}
-		}
-	}*/
+		}*/
+	}
+
+	_isImageReady = true;
+}
+
+bool IRSensor::isImageReady()
+{
+	return this->_isImageReady;
 }
 
 void IRSensor::Dma2dXferCpltCallback(DMA2D_HandleTypeDef* hdma2d)
