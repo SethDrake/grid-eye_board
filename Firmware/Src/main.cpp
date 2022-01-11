@@ -211,7 +211,7 @@ static void LTDC_Thread(void const *argument)
 			irSensor.visualizeImage(THERMAL_SCALE, vis_mode);
 			if (!oneTimeActionDone && isSensorReadDone)
 			{
-				irSensor.drawGradient(244, 50, 254, 225);	
+				irSensor.drawGradient(250, 50, 260, 225);	
 				oneTimeActionDone = true;
 			}
 			
@@ -232,11 +232,11 @@ static void LTDC_Thread(void const *argument)
 
 				fbInfoLayer.printf(hotDotX * THERMAL_SCALE, hotDotY * THERMAL_SCALE, ARGB_COLOR_BLACK | 0x8000, ARGB_COLOR_BLACK, "%u\x81", maxTemp);
 				fbInfoLayer.printf(coldDotX * THERMAL_SCALE, coldDotY * THERMAL_SCALE, ARGB_COLOR_GREEN | 0x8000, ARGB_COLOR_BLACK, "%u\x81", minTemp);
-				fbInfoLayer.printf(244, 0, "CPU: %u%%", cpuUsage);
-				fbInfoLayer.printf(244, 12, "T: %04u", xExecutionTime);
-				fbInfoLayer.printf(244, 24, "W: %04u", inWait);
-				fbInfoLayer.printf(244, 225, ARGB_COLOR_RED | 0x8000, ARGB_COLOR_BLACK, "MAX:%u\x81", maxTemp);
-				fbInfoLayer.printf(244, 38, ARGB_COLOR_GREEN | 0x8000, ARGB_COLOR_BLACK, "MIN:%u\x81", minTemp);
+				fbInfoLayer.printf(250, 0, "CPU: %u%%", cpuUsage);
+				fbInfoLayer.printf(250, 12, "T: %04u", xExecutionTime);
+				fbInfoLayer.printf(250, 24, "W: %04u", inWait);
+				fbInfoLayer.printf(250, 225, ARGB_COLOR_RED | 0x8000, ARGB_COLOR_BLACK, "MAX:%u\x81", maxTemp);
+				fbInfoLayer.printf(250, 38, ARGB_COLOR_GREEN | 0x8000, ARGB_COLOR_BLACK, "MIN:%u\x81", minTemp);
 
 				// const TickType_t xTime2 = xTaskGetTickCount();
 				// xExecutionTime = xTime2 - xTime1;
