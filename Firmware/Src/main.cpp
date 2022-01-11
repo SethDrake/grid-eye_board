@@ -155,15 +155,13 @@ static void IrSensor_Thread(void const *argument)
 	for (;;)
 	{
 		if (isSensorReady) {
+			const TickType_t xTime1 = xTaskGetTickCount();
 			while(!irSensor.isFrameReady())
 			{
 				inWait = inWait + 1;
 				osDelay(5);
 			}
-			const TickType_t xTime1 = xTaskGetTickCount();
 			irSensor.readImage(0.95f); //first subpage
-			const TickType_t xTime2 = xTaskGetTickCount();
-			xExecutionTime = xTime2 - xTime1;
 			showSP();
 			while(!irSensor.isFrameReady())
 			{
@@ -173,6 +171,8 @@ static void IrSensor_Thread(void const *argument)
 			irSensor.readImage(0.95f);// second subpage
 			showSP();
 			irSensor.findMinAndMaxTemp();
+			const TickType_t xTime2 = xTaskGetTickCount();
+			xExecutionTime = xTime2 - xTime1;
 			isSensorReadDone = true;
 		}
 		osDelay(10);

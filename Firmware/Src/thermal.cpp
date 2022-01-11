@@ -1113,57 +1113,9 @@ void IRSensor::visualizeImage(const uint8_t scale, const uint8_t method)
 			col--;
 		}
 	}
-	/*else if (method == 1)
+	else if (method == 1)
 	{
-		float tmp, u, t, d1, d2, d3, d4;
-		uint16_t p1, p2, p3, p4;
-		
-		for (uint8_t i = 0; i < 64; i++)
-		{
-			colors[i] = this->temperatureToRGB565(dots[i], minTemp + minTempCorr, maxTemp + maxTempCorr);		
-		}
-		
-		for (uint16_t j = 0; j < resY; j++) {
-			tmp = (float)(j) / (float)(resY - 1) * (8 - 1);
-			int16_t h = (int16_t)tmp;
-			if (h >= 8 - 1) {
-				h = 8 - 2;
-			}
-			u = tmp - h;
-
-			pSdramAddress = (uint16_t *)(this->fb_addr + (j * resX) * 2);
-
-			for (uint16_t i = 0; i < resX; i++) {
-
-				tmp = (float)(i) / (float)(resX - 1) * (8 - 1);
-				int16_t w = (int16_t)tmp;
-				if (w >= 8 - 1) {
-					w = 8 - 2;
-				}
-				t = tmp - w;
-
-				d1 = (1 - t) * (1 - u);
-				d2 = t * (1 - u);
-				d3 = t * u;
-				d4 = (1 - t) * u;
-
-				p1 = colors[h * 8 + w];
-				p2 = colors[h * 8 + w + 1];
-				p3 = colors[(h + 1) * 8 + w + 1];
-				p4 = colors[(h + 1) * 8 + w];
-
-				uint8_t blue = ((uint8_t)(p1 & 0x001f)*d1 + (uint8_t)(p2 & 0x001f)*d2 + (uint8_t)(p3 & 0x001f)*d3 + (uint8_t)(p4 & 0x001f)*d4);
-				uint8_t green = (uint8_t)((p1 >> 5) & 0x003f) * d1 + (uint8_t)((p2 >> 5) & 0x003f) * d2 + (uint8_t)((p3 >> 5) & 0x003f) * d3 + (uint8_t)((p4 >> 5) & 0x003f) * d4;
-				uint8_t red = (uint8_t)(p1 >> 11) * d1 + (uint8_t)(p2 >> 11) * d2 + (uint8_t)(p3 >> 11) * d3 + (uint8_t)(p4 >> 11) * d4;
-
-				*(volatile uint16_t *)pSdramAddress = ((uint16_t) red << 11) | ((uint16_t) green << 5) | (blue);
-				pSdramAddress++;
-			}
-		}
-	}
-	else if (method == 2)
-	{
-		float tmp, u, t, d1, d2, d3, d4;
+		/*float tmp, u, t, d1, d2, d3, d4;
 		float p1, p2, p3, p4;
 		
 		for (uint16_t j = 0; j < resY; j++) {
