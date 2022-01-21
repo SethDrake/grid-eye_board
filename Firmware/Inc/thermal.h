@@ -41,7 +41,7 @@ public:
 	uint16_t getColdDotIndex();
 	uint16_t temperatureToRGB565(float temperature, float minTemp, float maxTemp);
 	void visualizeImage(uint8_t scale, uint8_t method);
-	void drawGradient(uint8_t startX, uint8_t startY, uint8_t stopX, uint8_t stopY);
+	void drawGradient(uint16_t startX, uint16_t startY, uint16_t stopX, uint16_t stopY);
 	void Dma2dXferCpltCallback(DMA2D_HandleTypeDef *hdma2d);
 protected:
 	uint16_t rgb2color(uint8_t R, uint8_t G, uint8_t B);
